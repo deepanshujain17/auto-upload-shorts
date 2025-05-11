@@ -88,8 +88,12 @@ if __name__ == "__main__":
     category = "22"  # People & Blogs
     privacy = "public"
 
-    print("🎬 Creating overlay video...")
-    output = create_overlay_video(input_video, overlay_image, final_video)
+    if not os.path.exists(final_video):
+        print("🎬 Creating overlay video...")
+        output = create_overlay_video(input_video, overlay_image, final_video)
+    else:
+        print("✅ Overlay video already exists, skipping creation.")
+        output = final_video
 
     print("🔐 Authenticating to YouTube...")
     yt = authenticate_youtube()
