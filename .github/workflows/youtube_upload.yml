@@ -1,0 +1,34 @@
+name: Daily YouTube Upload
+
+on:
+  schedule:
+    - cron: '0 6 * * *'  # 12 PM IST = 6:00 AM UTC
+  workflow_dispatch:  # Allow manual runs too
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Write client_secrets.json
+        run: |
+          echo "${{ secrets.CLIENT_SECRETS_JSON }}" > client_secrets.json
+
+      - name: Run upload script
+        run: python your_script.py
+
+      - name: Restore token.pkl
+        run: |
+          echo "${{ secrets.TOKEN_PKL_B64 }}" | base64 -d > token.pkl
