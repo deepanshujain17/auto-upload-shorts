@@ -22,13 +22,14 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Restore token.pkl
+        run: |
+          echo "${{ secrets.TOKEN_PKL_B64 }}" | base64 -d > token.pkl
+
       - name: Write client_secrets.json
         run: |
-          echo "${{ secrets.CLIENT_SECRETS_JSON }}" > client_secrets.json
+          echo "${{ secrets.CLIENT_SECRETS_B64 }}" | base64 -d > client_secrets.json
 
       - name: Run upload script
         run: python main.py
 
-      - name: Restore token.pkl
-        run: |
-          echo "${{ secrets.TOKEN_PKL_B64 }}" | base64 -d > token.pkl
