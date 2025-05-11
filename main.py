@@ -79,7 +79,7 @@ if __name__ == "__main__":
     os.makedirs("output", exist_ok=True)
 
     input_video = "videos/video1.mp4"
-    overlay_image = "images/image1.jpg"
+    overlay_image = "images/image1.jpeg"
     final_video = "output/short_with_overlay.mp4"
 
     title = "My Short with Overlay"
