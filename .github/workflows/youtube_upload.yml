@@ -27,7 +27,7 @@ jobs:
           echo "${{ secrets.CLIENT_SECRETS_JSON }}" > client_secrets.json
 
       - name: Run upload script
-        run: python your_script.py
+        run: python main.py
 
       - name: Restore token.pkl
         run: |
