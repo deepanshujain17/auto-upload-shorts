@@ -9,6 +9,7 @@ load_dotenv()
 
 # API Configuration
 GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")  # Ensure to set this in your .env file
+MINUTES_AGO = 240
 
 def get_news(categories=None):
     """
@@ -23,7 +24,7 @@ def get_news(categories=None):
 
     for category in categories:
         print(f"Fetching news for category: {category}")
-        from_time = get_zulu_time_minus(240)  # Fetch articles from the last X minutes
+        from_time = get_zulu_time_minus(MINUTES_AGO)  # Fetch articles from the last X minutes
 
         params = {
             # "q": "India",
