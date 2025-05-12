@@ -6,45 +6,33 @@ from pathlib import Path
 sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from .commons import get_zulu_time_minus
-
-from settings import (
-    GNEWS_API_KEY,
-    DEFAULT_CATEGORY,
-    NEWS_LANGUAGE,
-    NEWS_COUNTRY,
-    MAX_ARTICLES,
-    NEWS_MINUTES_AGO,
-    NEWS_IN,
-    NEWS_QUERY,
-    GNEWS_TOP_HEADLINES_ENDPOINT,
-    GNEWS_SEARCH_ENDPOINT
-)
+from settings import NewsSettings
 
 def get_news(categories=None):
     """
     Fetch news articles from GNews API for given categories
     """
     if categories is None:
-        categories = [DEFAULT_CATEGORY]
+        categories = [NewsSettings.DEFAULT_CATEGORY]
 
     results = {}
     for category in categories:
         print(f"Fetching news for category: {category}")
-        from_time = get_zulu_time_minus(NEWS_MINUTES_AGO)  # Fetch articles from the last X minutes
+        from_time = get_zulu_time_minus(NewsSettings.MINUTES_AGO)  # Fetch articles from the last X minutes
 
         params = {
-            # "q": NEWS_QUERY,
-            # "in": NEWS_IN,
+            # "q": NewsSettings.QUERY,
+            # "in": NewsSettings.IN_FIELD,
             "from": from_time,
             "category": category,
-            "lang": NEWS_LANGUAGE,
-            "country": NEWS_COUNTRY,
-            "max": MAX_ARTICLES,
-            "apikey": GNEWS_API_KEY
+            "lang": NewsSettings.LANGUAGE,
+            "country": NewsSettings.COUNTRY,
+            "max": NewsSettings.MAX_ARTICLES,
+            "apikey": NewsSettings.API_KEY
         }
 
         try:
-            response = requests.get(GNEWS_TOP_HEADLINES_ENDPOINT, params=params)
+            response = requests.get(NewsSettings.TOP_HEADLINES_ENDPOINT, params=params)
             response.raise_for_status()
             articles = response.json().get("articles", [])
             if articles:
@@ -61,5 +49,4 @@ def get_news(categories=None):
             results[category] = {"title": f"Error fetching {category}", "description": str(e)}
 
     return results
-
 
