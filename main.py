@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     # Authenticate to YouTube once before the loop
     print("🔐 Authenticating to YouTube...")
-    # yt = authenticate_youtube()
+    yt = authenticate_youtube()
 
     # Process each category
     for category in categories:
@@ -53,4 +53,4 @@ if __name__ == "__main__":
         output = create_overlay_video(input_video, overlay_image, final_video)
 
         print(f"🚀 Uploading {category} video to YouTube Shorts...")
-        # upload_video(yt, output, title, description, tags, youtube_category, privacy)
+        upload_video(yt, output, title, description, tags, youtube_category, privacy)
