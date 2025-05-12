@@ -6,9 +6,9 @@ def create_html_card(article, output_path="temp.html"):
             <style>
                 body {{
                     font-family: Arial, sans-serif;
-                    width: 600px;
+                    width: 680px;
                     border: 1px solid #ccc;
-                    padding: 20px;
+                    padding: 10px;
                     margin: 0 auto;
                     background-color: #f9f9f9;
                 }}
@@ -18,11 +18,11 @@ def create_html_card(article, output_path="temp.html"):
                     border-radius: 8px;
                 }}
                 h2 {{
-                    font-size: 24px;
+                    font-size: 28px;
                     margin-top: 15px;
                 }}
                 p {{
-                    font-size: 16px;
+                    font-size: 18px;
                 }}
                 .meta {{
                     font-size: 12px;
