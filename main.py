@@ -13,7 +13,8 @@ if __name__ == "__main__":
 
     # First fetch the news to generate the news card
     print("📰 Fetching news and generating news card...")
-    articles_by_category = get_news()
+    categories = ["nation"]
+    articles_by_category = get_news(categories)
 
     # Generate news card for the nation category
     category = "nation"

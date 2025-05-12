@@ -13,13 +13,6 @@ def get_news(categories=None):
     """
     Fetch news articles from GNews API for given categories
     """
-    categories = [
-        "world", "nation", "business", "technology",
-        "entertainment", "sports", "science", "health"
-    ]
-
-    categories = ["nation"]
-
     if categories is None:
         categories = ["nation"]  # Default category
 

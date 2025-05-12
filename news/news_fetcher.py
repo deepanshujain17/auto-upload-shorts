@@ -13,7 +13,13 @@ print(GNEWS_API_KEY)
 
 if __name__ == "__main__":
     print("📡 Fetching news articles...")
-    articles_by_category = get_news()
+    # categories = [
+    #     "world", "nation", "business", "technology",
+    #     "entertainment", "sports", "science", "health"
+    # ]
+
+    categories = ["nation", "sports"]
+    articles_by_category = get_news(categories)
 
     for category, article in articles_by_category.items():
         print(f"\n🧾 Generating news card for category: {category}")
