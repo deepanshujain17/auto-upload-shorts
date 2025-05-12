@@ -1,9 +1,15 @@
+import os
+import dotenv
+
 from utils.html_utils import create_html_card
 from utils.news_utils import get_news
 from utils.browser_utils import render_card_to_image
 
 # --- CONFIG ---
-GNEWS_API_KEY = "7491e9afca2a0ca92223977617c2430e"
+dotenv.load_dotenv()
+
+GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")
+print(GNEWS_API_KEY)
 
 if __name__ == "__main__":
     print("📡 Fetching news articles...")
