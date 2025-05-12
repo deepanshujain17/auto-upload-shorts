@@ -1,42 +1,50 @@
 import requests
-import os
-from dotenv import load_dotenv
+import sys
+from pathlib import Path
 
-# Load environment variables
-load_dotenv()
+# Add the project root directory to Python path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
-# API Configuration
-GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")  # Ensure to set this in your .env file
-print(f"GNews API Key: {GNEWS_API_KEY}")
+from .commons import get_zulu_time_minus
+
+from settings import (
+    GNEWS_API_KEY,
+    DEFAULT_CATEGORY,
+    NEWS_LANGUAGE,
+    NEWS_COUNTRY,
+    MAX_ARTICLES,
+    NEWS_MINUTES_AGO,
+    NEWS_IN,
+    NEWS_QUERY,
+    GNEWS_TOP_HEADLINES_ENDPOINT,
+    GNEWS_SEARCH_ENDPOINT
+)
 
 def get_news(categories=None):
     """
     Fetch news articles from GNews API for given categories
     """
-    categories = [
-        "world", "nation", "business", "technology",
-        "entertainment", "sports", "science", "health"
-    ]
-
-    categories = ["nation"]
-
     if categories is None:
-        categories = ["nation"]  # Default category
+        categories = [DEFAULT_CATEGORY]
 
-    base_url = "https://gnews.io/api/v4/top-headlines"
     results = {}
-
     for category in categories:
         print(f"Fetching news for category: {category}")
+        from_time = get_zulu_time_minus(NEWS_MINUTES_AGO)  # Fetch articles from the last X minutes
+
         params = {
+            # "q": NEWS_QUERY,
+            # "in": NEWS_IN,
+            "from": from_time,
             "category": category,
-            "lang": "en",
-            "country": "in",
-            "max": 1,
+            "lang": NEWS_LANGUAGE,
+            "country": NEWS_COUNTRY,
+            "max": MAX_ARTICLES,
             "apikey": GNEWS_API_KEY
         }
+
         try:
-            response = requests.get(base_url, params=params)
+            response = requests.get(GNEWS_TOP_HEADLINES_ENDPOINT, params=params)
             response.raise_for_status()
             articles = response.json().get("articles", [])
             if articles:
@@ -53,3 +61,5 @@ def get_news(categories=None):
             results[category] = {"title": f"Error fetching {category}", "description": str(e)}
 
     return results
+
+
