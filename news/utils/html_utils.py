@@ -45,9 +45,6 @@ def create_html_card(article, output_path="temp.html"):
 
     image_html = f"<img src='{article.get('image', '')}' alt='News image'>" if article.get("image") else ""
 
-    # Source of the article
-    print(f"News Source: {article.get('source', {}).get('name', 'Unknown')}")
-
     # Split content into lines and combine first two lines if available
     content = article.get("content", "").split(". ")
     content_lines = [line.strip() + "." for line in content[:1] if line.strip()]
@@ -65,9 +62,11 @@ def create_html_card(article, output_path="temp.html"):
         image_html=image_html,
         # content=combined_content,
         published=article.get("publishedAt", "Unknown")
+        #     TODO: print IST time here.
     )
 
     with open(output_path, "w", encoding="utf-8") as f:
         f.write(html_content)
 
-
+    # Source of the article
+    print(f"🌐 News Source: {article.get('source', {}).get('name', 'Unknown')}")
