@@ -16,7 +16,7 @@ if __name__ == "__main__":
     description = "Auto-uploaded via Python!"
     tags = ["shorts", "python"]
     category = "22"  # People & Blogs
-    privacy = "public"
+    privacy = "private"
 
     if not os.path.exists(final_video):
         print("🎬 Creating overlay video...")
