@@ -18,7 +18,7 @@ def create_html_card(article, output_path="temp.html"):
                     border-radius: 8px;
                 }}
                 h2 {{
-                    font-size: 20px;
+                    font-size: 24px;
                     margin-top: 15px;
                 }}
                 p {{
@@ -35,7 +35,6 @@ def create_html_card(article, output_path="temp.html"):
             <h2>{title}</h2>
             <p>{description}</p>
             <div class="meta">
-                <p><b>Source:</b> {source}</p>
                 <p><b>Published:</b> {published}</p>
             </div>
         </body>
@@ -44,11 +43,19 @@ def create_html_card(article, output_path="temp.html"):
 
     image_html = f"<img src='{article.get('image', '')}' alt='News image'>" if article.get("image") else ""
 
+    # Source of the article
+    print(f"News Source: {article.get('source', {}).get('name', 'Unknown')}")
+
+    # Split content into lines and combine first two lines if available
+    content = article.get("content", "").split(". ")
+    content_lines = [line.strip() + "." for line in content[:1] if line.strip()]
+    combined_content = " ".join(content_lines) if content_lines else ""
+
     html_content = html_template.format(
         title=article.get("title", "No Title"),
         description=article.get("description", "No Description"),
         image_html=image_html,
-        source=article.get("source", {}).get("name", "Unknown"),
+        # content=combined_content,
         published=article.get("publishedAt", "Unknown")
     )
 
