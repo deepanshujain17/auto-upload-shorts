@@ -6,7 +6,7 @@ from utils.upload import upload_video
 from news.utils.news_utils import get_news
 from news.utils.html_utils import create_html_card
 from news.utils.browser_utils import render_card_to_image
-from settings import NewsSettings, YouTubeSettings
+from settings import YouTubeSettings
 
 # --- MAIN ---
 if __name__ == "__main__":
@@ -42,7 +42,7 @@ if __name__ == "__main__":
         input_video = "assets/videos/video1.mp4"
         final_video = f"output/short_with_overlay_{category}.mp4"
 
-        # TODO: Update title, description and tags to be more relevant
+        # TODO: Update title, description and tags to be more relevant, catchy and exciting eg. news of the hour or so
         title = f"Latest {category.title()} News Update"
         description = f"Auto-generated {category} news update #shorts"
         tags = ["shorts", "news", category, "update", "trending"]
