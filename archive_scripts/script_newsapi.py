@@ -29,9 +29,11 @@ class NewsFetcher:
         """
         try:
             top_headlines = self.newsapi.get_top_headlines(
-                country=country,
+                q='(India OR Delhi OR Mumbai OR Bangalore) AND (politics OR economy OR society)',
+                country='in',
                 category=category,
-                language='en'
+                language='en',
+                domains='ndtv.com,indianexpress.com,hindustantimes.com,timesofindia.indiatimes.com'
             )
             return top_headlines['articles'][:max_results]
         except Exception as e:
