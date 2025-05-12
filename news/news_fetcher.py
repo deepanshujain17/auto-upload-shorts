@@ -9,7 +9,6 @@ from utils.browser_utils import render_card_to_image
 dotenv.load_dotenv()
 
 GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")
-print(GNEWS_API_KEY)
 
 if __name__ == "__main__":
     print("📡 Fetching news articles...")

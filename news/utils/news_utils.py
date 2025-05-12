@@ -2,12 +2,13 @@ import requests
 import os
 from dotenv import load_dotenv
 
+from .commons import get_zulu_time_minus
+
 # Load environment variables
 load_dotenv()
 
 # API Configuration
 GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")  # Ensure to set this in your .env file
-print(f"GNews API Key: {GNEWS_API_KEY}")
 
 def get_news(categories=None):
     """
@@ -16,20 +17,26 @@ def get_news(categories=None):
     if categories is None:
         categories = ["nation"]  # Default category
 
-    base_url = "https://gnews.io/api/v4/top-headlines"
+    search_endpoint_base_url = "https://gnews.io/api/v4/search" # Base URL for keyword search endpoint
+    top_headlines_base_url = "https://gnews.io/api/v4/top-headlines"
     results = {}
 
     for category in categories:
         print(f"Fetching news for category: {category}")
+        from_time = get_zulu_time_minus(240)  # Fetch articles from the last X minutes
+
         params = {
+            # "q": "India",
+            # "in": "title",
+            # "from": from_time,
             "category": category,
             "lang": "en",
             "country": "in",
             "max": 1,
-            "apikey": GNEWS_API_KEY
+            "apikey": GNEWS_API_KEY,
         }
         try:
-            response = requests.get(base_url, params=params)
+            response = requests.get(top_headlines_base_url, params=params)
             response.raise_for_status()
             articles = response.json().get("articles", [])
             if articles:
