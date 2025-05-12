@@ -4,20 +4,40 @@ from dotenv import load_dotenv
 # Load environment variables
 load_dotenv()
 
-# GNews API Configuration
-GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")
+class NewsSettings:
+    # GNews API Configuration
+    API_KEY = os.getenv("GNEWS_API_KEY")
 
-# News API Settings
-DEFAULT_CATEGORY = "nation"
-NEWS_LANGUAGE = "hi"
-NEWS_COUNTRY = "in"
-NEWS_MINUTES_AGO = 240
-# Extra params
-NEWS_IN = "title"
-NEWS_QUERY = "India"
+    # News API Settings
+    DEFAULT_CATEGORY = "nation"
+    LANGUAGE = "hi"
+    COUNTRY = "in"
+    MINUTES_AGO = 240
+    IN_FIELD = "title"
+    QUERY = "India"
+    MAX_ARTICLES = 1
 
-MAX_ARTICLES = 1
+    # API Endpoints
+    SEARCH_ENDPOINT = "https://gnews.io/api/v4/search"
+    TOP_HEADLINES_ENDPOINT = "https://gnews.io/api/v4/top-headlines"
 
-# API Endpoints
-GNEWS_SEARCH_ENDPOINT = "https://gnews.io/api/v4/search"
-GNEWS_TOP_HEADLINES_ENDPOINT = "https://gnews.io/api/v4/top-headlines"
+class HTMLSettings:
+    CARD_WIDTH = 680
+    TITLE_FONT_SIZE = 28
+    DESCRIPTION_FONT_SIZE = 18
+    META_FONT_SIZE = 12
+    TITLE_MARGIN_TOP = 15
+    BORDER_RADIUS = 8
+
+class VideoSettings:
+    IMAGE_HEIGHT = 720
+    IMAGE_VERTICAL_OFFSET = 350
+    VIDEO_CODEC = "libx264"
+    AUDIO_CODEC = "aac"
+    WINDOW_WIDTH = 800
+    WINDOW_HEIGHT = 800
+    BROWSER_WAIT_TIME = 2  # seconds
+
+class YouTubeSettings:
+    DEFAULT_CATEGORY = "22"  # People & Blogs
+    DEFAULT_PRIVACY = "private"

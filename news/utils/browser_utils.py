@@ -12,6 +12,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
+from settings import VideoSettings
 
 
 def render_card_to_image(html_file: str, output_image: str) -> None:
@@ -28,7 +29,7 @@ def render_card_to_image(html_file: str, output_image: str) -> None:
     # Configure Chrome options for headless operation
     options = Options()
     options.add_argument('--headless')
-    options.add_argument('--window-size=800,800')  # Set fixed window size for consistent output
+    options.add_argument(f'--window-size={VideoSettings.WINDOW_WIDTH},{VideoSettings.WINDOW_HEIGHT}')
 
     # Initialize Chrome WebDriver
     driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
@@ -38,7 +39,7 @@ def render_card_to_image(html_file: str, output_image: str) -> None:
 
     # Load and render the HTML file
     driver.get(file_path)
-    sleep(2)  # Wait for the page to render completely
+    sleep(VideoSettings.BROWSER_WAIT_TIME)  # Wait for the page to render completely
 
     # Capture screenshot and cleanup
     driver.save_screenshot(output_image)
