@@ -22,6 +22,9 @@ jobs:
         run: |
           pip install -r requirements.txt
 
+      - name: Export secret to .env file
+        run: echo "GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}" > .env
+
       - name: Restore token.pkl
         run: |
           echo "${{ secrets.TOKEN_PKL_B64 }}" | base64 -d > token.pkl
@@ -32,7 +35,3 @@ jobs:
 
       - name: Run upload script
         run: python main.py
-
-      - name: Export secret to .env file
-        run: echo "GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}" > .env
-
