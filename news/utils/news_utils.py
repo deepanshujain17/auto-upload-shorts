@@ -1,4 +1,9 @@
 import requests
+import sys
+from pathlib import Path
+
+# Add the project root directory to Python path
+sys.path.append(str(Path(__file__).resolve().parent.parent.parent))
 
 from .commons import get_zulu_time_minus
 
@@ -56,3 +61,5 @@ def get_news(categories=None):
             results[category] = {"title": f"Error fetching {category}", "description": str(e)}
 
     return results
+
+
