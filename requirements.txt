@@ -1,3 +1,7 @@
+requests==2.31.0
+selenium==4.9.1
+webdriver-manager
+Jinja2==3.1.2
 moviepy
 google-auth-oauthlib
 google-api-python-client
@@ -5,3 +9,4 @@ newsapi-python
 python-dotenv
 selenium
 webdriver-manager
+
