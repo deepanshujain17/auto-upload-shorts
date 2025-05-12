@@ -2,7 +2,7 @@ name: Daily YouTube Upload
 
 on:
   schedule:
-    - cron: '0 6 * * *'  # 12 PM IST = 6:00 AM UTC
+    - cron: '0 12 * * *'  # 12:00 UTC = 17:30 IST
   workflow_dispatch:  # Allow manual runs too
 
 jobs:
