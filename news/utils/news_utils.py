@@ -6,7 +6,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # API Configuration
-# GNEWS_API_KEY = "7491e9afca2a0ca92223977617c2430e"
 GNEWS_API_KEY = os.getenv("GNEWS_API_KEY")  # Ensure to set this in your .env file
 
 def get_news(categories=None):

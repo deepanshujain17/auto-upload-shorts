@@ -33,3 +33,6 @@ jobs:
       - name: Run upload script
         run: python main.py
 
+      - name: Export secret to .env file
+        run: echo "GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}" > .env
+
