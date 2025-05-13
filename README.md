@@ -29,8 +29,49 @@ cd auto-upload-shorts
 pip install -r requirements.txt
 ```
 
+3. Additional Setup for YouTube API:
+   - Create a project in the [Google Cloud Console](https://console.cloud.google.com/).
+   - Enable the YouTube Data API v3.
+   - Create OAuth 2.0 credentials and download the `client_secrets.json` file.
+
+4. To generate token.pkl for YouTube API authentication, run:
+    - Run function in auth.py for the first time
+    - This will open a browser window for you to authenticate your Google account and grant permissions.
+    - After successful authentication, a `token.pkl` file will be created in the same directory. This file stores your access and refresh tokens securely for future use.
+
+5. Create .env file in the root directory and the GNEWS API Credentials:
+```bash 
+GNEWS_API_KEY=your_gnews_api_key
+````
+
+6. To run the application as Github Action:
+    - create a `.github/workflows/youtube_upload.yml` file and create the necessary default workflow.
+    - Encode base64 the `client_secrets.json` and `token.pkl` files and add them as secrets in your GitHub repository.
+    - Add the GNEWS API key as a secret in your GitHub repository.
+
 ## Project Structure
 
 ```
+.
+├── main.py                # Main application entry point
+├── requirements.txt       # Python dependencies
+├── settings.py           # Application settings
+├── archive_scripts/      # Archive of previous implementations
 ├── assets/
-│   ├── images/      # Store your image assets
+│   ├── images/          # Static images
+│   └── videos/          # Background videos and BGM
+├── news/
+│   ├── news_fetcher.py  # News fetching implementation
+│   ├── news_cards/      # Generated news card images
+│   ├── temp/            # Temporary HTML templates
+│   └── utils/           # News processing utilities
+├── others/              # Authentication files
+│   ├── client_secrets.json
+│   └── token.pkl
+├── output/              # Generated video outputs
+└── utils/              
+    ├── auth.py         # YouTube authentication
+    ├── upload.py       # YouTube upload functionality
+    └── video_processor.py
+```
+``

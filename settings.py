@@ -9,8 +9,15 @@ class NewsSettings:
     API_KEY = os.getenv("GNEWS_API_KEY")
 
     # News API Settings
+    CATEGORIES = ["sports", "entertainment", "nation"]
+    CATEGORY_BGM = {
+        "sports": "bgm_tararara",
+        "entertainment": "bgm_chubina",
+        "nation": "bgm_cheerful"
+    }
     DEFAULT_CATEGORY = "nation"
-    LANGUAGE = "en"
+    DEFAULT_CATEGORY_BGM = "bgm_cheerful"
+    LANGUAGE = "hi"
     COUNTRY = "in"
     MINUTES_AGO = 240 # Change this to get the latest news
     IN_FIELD = "title"
@@ -31,7 +38,7 @@ class HTMLSettings:
 
 class VideoSettings:
     IMAGE_HEIGHT = 720
-    IMAGE_VERTICAL_OFFSET = 350
+    IMAGE_VERTICAL_OFFSET = 300
     VIDEO_CODEC = "libx264"
     AUDIO_CODEC = "aac"
     WINDOW_WIDTH = 800
@@ -40,4 +47,4 @@ class VideoSettings:
 
 class YouTubeSettings:
     DEFAULT_CATEGORY = "22"  # People & Blogs
-    DEFAULT_PRIVACY = "private"
+    DEFAULT_PRIVACY = "public"
