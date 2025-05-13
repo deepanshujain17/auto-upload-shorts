@@ -17,7 +17,7 @@ class NewsSettings:
     }
     DEFAULT_CATEGORY = "nation"
     DEFAULT_CATEGORY_BGM = "bgm_cheerful"
-    LANGUAGE = "en"
+    LANGUAGE = "hi"
     COUNTRY = "in"
     MINUTES_AGO = 240 # Change this to get the latest news
     IN_FIELD = "title"
