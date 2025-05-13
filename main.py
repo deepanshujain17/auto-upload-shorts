@@ -6,7 +6,8 @@ from utils.upload import upload_video
 from news.utils.news_utils import get_news
 from news.utils.html_utils import create_html_card
 from news.utils.browser_utils import render_card_to_image
-from settings import YouTubeSettings
+from settings import YouTubeSettings, NewsSettings
+
 
 def generate_news_card(category: str) -> str:
     """
@@ -53,7 +54,8 @@ def create_overlay_video_output(category, overlay_image):
         Exception: If video creation fails
     """
     try:
-        input_video = "assets/videos/video_tararara.mp4"
+        bgm_video = NewsSettings.CATEGORY_BGM.get(category, NewsSettings.DEFAULT_CATEGORY_BGM)
+        input_video = f"assets/videos/{bgm_video}.mp4"
         final_video = f"output/short_with_overlay_{category}.mp4"
 
         print(f"🎬 Creating overlay video for {category}...")
@@ -92,16 +94,13 @@ if __name__ == "__main__":
     # 📝 Set your input and metadata here
     os.makedirs("output", exist_ok=True)
 
-    # Define categories to process
-    categories = ["sports"]
-
     try:
         # Authenticate to YouTube once before the loop
         print("🔐 Authenticating to YouTube...")
         yt = authenticate_youtube()
 
         # Process each category
-        for category in categories:
+        for category in NewsSettings.CATEGORIES:
             try:
                 print(f"\n📌 Processing category: {category}")
 
