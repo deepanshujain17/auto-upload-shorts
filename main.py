@@ -53,7 +53,7 @@ def create_overlay_video_output(category, overlay_image):
         Exception: If video creation fails
     """
     try:
-        input_video = "assets/videos/video1.mp4"
+        input_video = "assets/videos/video_tararara.mp4"
         final_video = f"output/short_with_overlay_{category}.mp4"
 
         print(f"🎬 Creating overlay video for {category}...")

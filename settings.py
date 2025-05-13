@@ -10,9 +10,9 @@ class NewsSettings:
 
     # News API Settings
     DEFAULT_CATEGORY = "nation"
-    LANGUAGE = "hi"
+    LANGUAGE = "en"
     COUNTRY = "in"
-    MINUTES_AGO = 240
+    MINUTES_AGO = 240 # Change this to get the latest news
     IN_FIELD = "title"
     QUERY = "India"
     MAX_ARTICLES = 1
