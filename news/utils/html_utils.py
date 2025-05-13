@@ -34,9 +34,15 @@ def create_html_card(article, output_path="temp.html"):
         published = "Unknown"
         if published_at:
             try:
-                dt = datetime.strptime(published_at, "%Y-%m-%dT%H%M%SZ")
-                ist_time = dt.astimezone(timezone(timedelta(hours=5, minutes=30)))
-                published = ist_time.strftime("%Y-%m-%d %H%M")
+                # Parse as UTC-aware datetime
+                dt = datetime.strptime(published_at, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+
+                # Convert to IST (UTC+5:30)
+                ist = timezone(timedelta(hours=5, minutes=30))
+                ist_time = dt.astimezone(ist)
+
+                # Format as readable IST time
+                published = ist_time.strftime("%Y-%m-%d %H:%M")
             except ValueError as e:
                 print(f"Error parsing date: {str(e)}")
 
