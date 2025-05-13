@@ -21,17 +21,17 @@ def generate_news_card(category: str) -> str:
         Exception: If any step in the process fails
     """
     try:
-        # First fetch the news to generate the news cards
+        # 1. First fetch the news to generate the news cards
         print("📰 Fetching news and generating news cards...")
         article = get_news(category)
         # print(article)
 
-        # Generate news card for the category
+        # 2. Generate news card HTML for the category
         html_output = f"news/temp/temp_{category}.html"
         print(f"🖥️ Generating HTML card for {category}...")
         create_html_card(article, html_output)
 
-        # Render the HTML to an image
+        # 3. Render the HTML to an image
         overlay_image = f"news/news_cards/card_{category}.png"
         print(f"🖼️ Rendering HTML to image for {category}...")
         render_card_to_image(html_output, overlay_image)
