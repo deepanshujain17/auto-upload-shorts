@@ -11,6 +11,10 @@ from settings import NewsSettings
 def get_news(category=None):
     """
     Fetch news articles from GNews API for given categories
+
+    Raises:
+        ValueError: If no articles are found for the given category
+        requests.exceptions.RequestException: If there's a network error
     """
     if category is None:
         category = NewsSettings.DEFAULT_CATEGORY
@@ -36,16 +40,13 @@ def get_news(category=None):
         if articles:
             result = articles[0]
             print(f"Successfully fetched article for {category}")
+            return result
         else:
             print(f"No articles found for {category}")
-            result = {"title": "No article found", "description": ""}
+            raise ValueError(f"No articles found for category: {category}")
     except requests.exceptions.RequestException as e:
         print(f"Network error while fetching {category}: {str(e)}")
-        result = {"title": f"Error fetching {category}", "description": str(e)}
+        raise
     except Exception as e:
         print(f"Unexpected error while fetching {category}: {str(e)}")
-        result = {"title": f"Error fetching {category}", "description": str(e)}
-
-    return result
-
-
+        raise

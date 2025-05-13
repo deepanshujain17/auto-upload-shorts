@@ -51,7 +51,7 @@ def create_html_card(article, output_path="temp.html"):
             <head>
                 <style>
                     body {{
-                        font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;
+                        font-family: {font_family};
                         width: {width}px;
                         border: 1px solid #ccc;
                         padding: 10px;
@@ -94,6 +94,7 @@ def create_html_card(article, output_path="temp.html"):
             title_margin=HTMLSettings.TITLE_MARGIN_TOP,
             desc_size=HTMLSettings.DESCRIPTION_FONT_SIZE,
             meta_size=HTMLSettings.META_FONT_SIZE,
+            font_family=HTMLSettings.FONT_FAMILY,
             title=title,
             description=description,
             image_html=image_html,
