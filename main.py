@@ -79,8 +79,11 @@ def upload_youtube_shorts(yt, category, overlay_video_output, article):
         Exception: If upload fails
     """
     try:
-        title = f"Latest {category.title()} News Update"
-        description = f"Auto-generated {category} news update #shorts"
+        article_title = ' '.join(article.get("title", "No Title").split()[:8])
+        article_description = article.get("description", "No Description")
+
+        title = f"Breaking News: {article_title}"
+        description = f"{article_description} #{category} #news #update #trends #shorts"
 
         # Generate dynamic tags from article content
         article_tags = [tag for tag, _ in generate_tags_with_frequency(article)]
