@@ -93,7 +93,7 @@ if __name__ == "__main__":
     os.makedirs("output", exist_ok=True)
 
     # Define categories to process
-    categories = ["nation", "sports", "entertainment"]
+    categories = ["sports"]
 
     try:
         # Authenticate to YouTube once before the loop
