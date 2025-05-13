@@ -35,6 +35,7 @@ class HTMLSettings:
     META_FONT_SIZE = 12
     TITLE_MARGIN_TOP = 15
     BORDER_RADIUS = 8
+    FONT_FAMILY = "Arial, sans-serif" # For Hindi use: "Noto Sans Devanagari, Mangal, sans-serif";
 
 class VideoSettings:
     IMAGE_HEIGHT = 720
@@ -49,3 +50,5 @@ class YouTubeSettings:
     DEFAULT_CATEGORY = "22"  # People & Blogs
     DEFAULT_PRIVACY = "public"
     DEFAULT_TAGS = ["shorts", "news", "TrendingNow"]
+
+
