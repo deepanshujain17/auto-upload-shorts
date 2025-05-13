@@ -9,7 +9,7 @@ class NewsSettings:
     API_KEY = os.getenv("GNEWS_API_KEY")
 
     # News API Settings
-    CATEGORIES = ["sports", "entertainment", "nation"]
+    CATEGORIES = ["general", "sports", "world", "nation", "business", "technology", "entertainment", "science", "health"]
     CATEGORY_BGM = {
         "sports": "bgm_tararara",
         "entertainment": "bgm_chubina",
