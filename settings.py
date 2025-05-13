@@ -48,3 +48,4 @@ class VideoSettings:
 class YouTubeSettings:
     DEFAULT_CATEGORY = "22"  # People & Blogs
     DEFAULT_PRIVACY = "public"
+    DEFAULT_TAGS = ["shorts", "news", "TrendingNow"]
