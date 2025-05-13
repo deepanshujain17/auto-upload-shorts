@@ -33,7 +33,7 @@ def create_html_card(article, output_path="temp.html"):
         <head>
             <style>
                 body {{
-                    font-family: Arial, sans-serif;
+                    font-family: 'Noto Sans Devanagari', 'Mangal', sans-serif;
                     width: {width}px;
                     border: 1px solid #ccc;
                     padding: 10px;
