@@ -42,7 +42,6 @@ def get_news(category=None):
             print(f"Successfully fetched article for {category}")
             return result
         else:
-            print(f"No articles found for {category}")
             raise ValueError(f"No articles found for category: {category}")
     except requests.exceptions.RequestException as e:
         print(f"Network error while fetching {category}: {str(e)}")
