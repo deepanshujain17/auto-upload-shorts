@@ -29,7 +29,7 @@ class NewsSettings:
     TOP_HEADLINES_ENDPOINT = "https://gnews.io/api/v4/top-headlines"
 
 class HTMLSettings:
-    CARD_WIDTH = 680
+    CARD_WIDTH = 800
     TITLE_FONT_SIZE = 28
     DESCRIPTION_FONT_SIZE = 18
     META_FONT_SIZE = 12
@@ -42,7 +42,7 @@ class VideoSettings:
     IMAGE_VERTICAL_OFFSET = 300
     VIDEO_CODEC = "libx264"
     AUDIO_CODEC = "aac"
-    WINDOW_WIDTH = 800
+    WINDOW_WIDTH = 790
     WINDOW_HEIGHT = 800
     BROWSER_WAIT_TIME = 2  # seconds
 
