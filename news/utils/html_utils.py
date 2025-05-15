@@ -48,41 +48,65 @@ def create_html_card(article, output_path="temp.html"):
 
         html_template = """
         <html>
-            <head>
-                <style>
-                    body {{
-                        font-family: {font_family};
-                        width: {width}px;
-                        padding: 10px;
-                        margin: 0 auto;
-                        background-color: #f9f9f9;
-                    }}
-                    img {{
-                        max-width: 100%;
-                        height: auto;
-                        border-radius: {border_radius}px;
-                    }}
-                    h2 {{
-                        font-size: {title_size}px;
-                        margin-top: {title_margin}px;
-                    }}
-                    p {{
-                        font-size: {desc_size}px;
-                    }}
-                    .meta {{
-                        font-size: {meta_size}px;
-                        color: gray;
-                    }}
-                </style>
-            </head>
-            <body>
-                {image_html}
+          <head>
+            <style>
+              body {{
+                font-family: {font_family};
+                background-color: #f9f9f9;
+                margin: 0;
+                padding: 20px;
+                display: flex;
+                justify-content: center;
+              }}
+        
+              .card {{
+                width: {width}px;
+                background-color: white;
+                border-radius: {border_radius}px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+                overflow: hidden;
+              }}
+        
+              .card img {{
+                width: 100%;
+                height: auto;
+                display: block;
+              }}
+        
+              .card-content {{
+                padding: 16px;
+              }}
+        
+              .card-content h2 {{
+                font-size: {title_size}px;
+                margin-top: {title_margin}px;
+                margin-bottom: 8px;
+              }}
+        
+              .card-content p {{
+                font-size: {desc_size}px;
+                margin: 8px 0;
+              }}
+        
+              .card-content .meta {{
+                font-size: {meta_size}px;
+                color: gray;
+                margin-top: 12px;
+              }}
+            </style>
+          </head>
+          <body>
+            <div class="card">
+              {image_html}
+              <div class="card-content">
                 <h2>{title}</h2>
                 <p>{description}</p>
                 <div class="meta">
-                    <p><b>Published:</b> {published}</p>
+                  <p><b>Published:</b> {published}</p>
                 </div>
-            </body>
+              </div>
+            </div>
+          </body>
         </html>
         """
 

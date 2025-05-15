@@ -29,7 +29,7 @@ class NewsSettings:
     TOP_HEADLINES_ENDPOINT = "https://gnews.io/api/v4/top-headlines"
 
 class HTMLSettings:
-    CARD_WIDTH = 800
+    CARD_WIDTH = 720
     TITLE_FONT_SIZE = 28
     DESCRIPTION_FONT_SIZE = 18
     META_FONT_SIZE = 12
@@ -38,12 +38,12 @@ class HTMLSettings:
     FONT_FAMILY = "Arial, sans-serif" # For Hindi use: "Noto Sans Devanagari, Mangal, sans-serif";
 
 class VideoSettings:
-    IMAGE_HEIGHT = 720
+    IMAGE_HEIGHT = 800
     IMAGE_VERTICAL_OFFSET = 300
     VIDEO_CODEC = "libx264"
     AUDIO_CODEC = "aac"
-    WINDOW_WIDTH = 790
-    WINDOW_HEIGHT = 800
+    WINDOW_WIDTH = 740
+    WINDOW_HEIGHT = 820
     BROWSER_WAIT_TIME = 2  # seconds
 
 class YouTubeSettings:
