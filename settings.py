@@ -51,4 +51,26 @@ class YouTubeSettings:
     DEFAULT_PRIVACY = "public"
     DEFAULT_TAGS = ["shorts", "news", "TrendingNow"]
 
+class PathSettings:
+    # Directory paths
+    OUTPUT_DIR = "output"
+    ASSETS_VIDEO_DIR = "assets/videos"
+    NEWS_TEMP_DIR = "news/temp"
+    NEWS_CARDS_DIR = "news/news_cards"
 
+    # File paths
+    @staticmethod
+    def get_html_output(category: str) -> str:
+        return f"{PathSettings.NEWS_TEMP_DIR}/temp_{category}.html"
+
+    @staticmethod
+    def get_overlay_image(category: str) -> str:
+        return f"{PathSettings.NEWS_CARDS_DIR}/card_{category}.png"
+
+    @staticmethod
+    def get_video_path(bgm_video: str) -> str:
+        return f"{PathSettings.ASSETS_VIDEO_DIR}/{bgm_video}.mp4"
+
+    @staticmethod
+    def get_final_video(category: str) -> str:
+        return f"{PathSettings.OUTPUT_DIR}/short_with_overlay_{category}.mp4"
