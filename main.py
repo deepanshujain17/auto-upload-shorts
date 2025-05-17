@@ -1,5 +1,5 @@
 import os
-
+import sys
 from utils.video_processor import create_overlay_video_output
 from utils.auth import authenticate_youtube
 from news.utils.commons import normalize_hashtag
@@ -71,13 +71,20 @@ if __name__ == "__main__":
     os.makedirs(PathSettings.OUTPUT_DIR, exist_ok=True)
 
     try:
+        # Parse command line arguments
+        process_type = sys.argv[1] if len(sys.argv) > 1 else "all"
+
         # Authenticate to YouTube once before the loop
         print("🔐 Authenticating to YouTube...")
         yt = authenticate_youtube()
 
-        # Choose which process to run
-        process_categories(yt)  # For category-based news
-        process_keywords(yt)    # For trending hashtags
+        # Run the specified process
+        if process_type == "categories" or process_type == "all":
+            process_categories(yt)
+
+        if process_type == "keywords" or process_type == "all":
+            process_keywords(yt)
+
     except Exception as e:
         print(f"❌ Fatal error: {str(e)}")
 
