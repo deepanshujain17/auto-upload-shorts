@@ -1,7 +1,7 @@
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
-from settings import VideoSettings
+from settings import VideoSettings, NewsSettings, PathSettings
 
 def create_overlay_video(video_path, image_path, output_path="output_with_overlay.mp4"):
     """
@@ -25,3 +25,28 @@ def create_overlay_video(video_path, image_path, output_path="output_with_overla
     final = CompositeVideoClip([video, image])
     final.write_videofile(output_path, codec=VideoSettings.VIDEO_CODEC, audio_codec=VideoSettings.AUDIO_CODEC)
     return output_path
+
+def create_overlay_video_output(category: str, overlay_image: str) -> str:
+    """
+    Create an overlay video with the news card.
+    Args:
+        category (str): News category to process
+        overlay_image (str): Path to the overlay image
+
+    Returns:
+        str: Path to the final video
+    Raises:
+        Exception: If video creation fails
+    """
+    try:
+        bgm_video = NewsSettings.CATEGORY_BGM.get(category, NewsSettings.DEFAULT_CATEGORY_BGM)
+        input_video = PathSettings.get_video_path(bgm_video)
+        final_video = PathSettings.get_final_video(category)
+
+        print(f"🎬 Creating overlay video for {category}...")
+        output = create_overlay_video(input_video, overlay_image, final_video)
+        return output
+    except Exception as e:
+        print(f"❌ Error creating overlay video for {category}: {str(e)}")
+        raise
+
