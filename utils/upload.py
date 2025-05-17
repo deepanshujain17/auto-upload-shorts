@@ -69,7 +69,8 @@ def upload_youtube_shorts(yt, category, overlay_video_output, article):
         article_tags_str = " ".join([f"#{tag}" for tag in article_tags])
         description = f"{article_description} {category_tags_str} {article_tags_str} #{category} #news #update #trends #shorts"
 
-        youtube_category = YouTubeSettings.DEFAULT_CATEGORY
+        # Get YouTube category ID from mapping, fallback to default if not found
+        youtube_category = str(YouTubeSettings.CATEGORY_TO_YOUTUBE_ID.get(category.lower(), YouTubeSettings.DEFAULT_CATEGORY))
         privacy = YouTubeSettings.DEFAULT_PRIVACY
 
         print(f"🚀 Uploading {category} video to YouTube Shorts...")
