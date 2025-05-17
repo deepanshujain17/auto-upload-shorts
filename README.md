@@ -60,13 +60,15 @@ Two separate workflows are configured to run at different times:
 
 1. **Categories Workflow** (`youtube_upload_categories.yml`):
    - Processes news by predefined categories
-   - Runs at 12:30, 13:30, and 14:30 UTC daily
+   - Runs at different time on weekdays and weekends
    - Can be manually triggered through GitHub Actions UI
 
 2. **Keywords Workflow** (`youtube_upload_keywords.yml`):
    - Processes news based on trending keywords/hashtags
-   - Runs at 15:30, 16:30, and 17:30 UTC daily
+   - Runs at different time on weekdays and weekends
    - Can be manually triggered through GitHub Actions UI
+
+NOTE: Total scheduled runs of both the workflows on any day, together should be under 100 to avoid hitting the GNews API limit.
 
 ### Manual Execution
 

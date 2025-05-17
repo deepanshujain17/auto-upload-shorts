@@ -19,10 +19,9 @@ class NewsSettings:
     DEFAULT_CATEGORY_BGM = "bgm_cheerful"
     LANGUAGE = "en"
     COUNTRY = "in"
-    MINUTES_AGO = 600 # Change this to get the latest news
-    IN_FIELD = "title"
-    QUERY = "India"
-    MAX_ARTICLES = 1
+    MINUTES_AGO = 1440 # Change this to get the latest news #IMP
+    IN_FIELD = "title,description"
+    MAX_ARTICLES = 1 # TODO: In Future, get more articles to generate more videos with the same GNEWS Hits limit
     SORT_BY = "publishedAt" # Another option: "relevance"
 
     # API Endpoints
@@ -83,4 +82,4 @@ class TrendingSettings:
     TRENDS_URL = "https://trends24.in/india"
     USER_AGENT = "Mozilla/5.0"
     DEFAULT_LIMIT = 50
-    MAX_HASHTAGS = 10  # Maximum number of hashtags to return
+    MAX_HASHTAGS = 10  # Maximum number of hashtags to return #IMP
