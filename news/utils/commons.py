@@ -1,3 +1,4 @@
+import re
 from datetime import datetime, timedelta, timezone
 
 def get_zulu_time_minus(minutes: int = 15) -> str:
@@ -18,3 +19,23 @@ def get_zulu_time_minus(minutes: int = 15) -> str:
 
     # Format the result as an ISO 8601 Zulu time string
     return time_minus_delta.strftime('%Y-%m-%dT%H:%M:%SZ')
+
+# TODO: Add support for all lowercase word extraction too eg. dohadiamondleague2025
+def normalize_hashtag(text: str) -> str:
+    """
+    Normalize the given text by removing leading '#' and extracting words with Pascal case.
+    Filters out single-letter words.
+    e.g. "#NeerajChopra -> Neeraj Chopra"
+
+    Args:
+        text (str): The text to normalize.
+
+    Returns:
+        str: Normalized text with words of length > 1.
+    """
+    text = text.lstrip("#")
+    words = re.findall(r'[A-Z][a-z]*', text)
+    # Filter out one-letter words
+    words = [word for word in words if len(word) > 1]
+    return ' '.join(words) or text
+
