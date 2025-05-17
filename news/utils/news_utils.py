@@ -1,5 +1,5 @@
 import requests
-
+import time
 from .commons import get_zulu_time_minus
 from settings import NewsSettings
 
@@ -50,6 +50,7 @@ def get_trending_news(category=None):
 def get_keyword_news(query: str) -> dict:
     """
     Fetch news article from GNews API using a search query.
+    Implements exponential backoff for rate limiting (HTTP 429).
 
     Args:
         query (str): The keyword to search for
@@ -59,9 +60,8 @@ def get_keyword_news(query: str) -> dict:
 
     Raises:
         ValueError: If no articles are found
-        requests.exceptions.RequestException: If there's a network error
+        requests.exceptions.RequestException: If there's a network error after all retries
     """
-    # Normalize the hashtag and use as search query
     from_time = get_zulu_time_minus(NewsSettings.MINUTES_AGO)
 
     params = {
@@ -74,23 +74,42 @@ def get_keyword_news(query: str) -> dict:
         "sortby": NewsSettings.SORT_BY,
     }
 
-    try:
-        response = requests.get(NewsSettings.SEARCH_ENDPOINT, params=params)
-        response.raise_for_status()
-        found_articles = response.json().get("articles", [])
-        if found_articles:
-            article = found_articles[0]
-            article['hashtag'] = query  # Add the original hashtag to the article for reference
-            print(f"✅ Successfully fetched article for {query}")
-            return article
-        else:
-            raise ValueError(f"🔍 No articles found for query: {query}")
-    except ValueError as ve:
-        print(str(ve))
-        raise
-    except requests.exceptions.RequestException as e:
-        print(f"Network error while fetching news for {query}: {str(e)}")
-        raise
-    except Exception as e:
-        print(f"Unexpected error while fetching news for {query}: {str(e)}")
-        raise
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get(NewsSettings.SEARCH_ENDPOINT, params=params)
+
+            # Handle rate limiting with exponential backoff
+            if response.status_code == 429:
+                wait_time = 2 ** attempt  # 1, 2, 4 seconds
+                print(f"⏳ Rate limited. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
+                time.sleep(wait_time)
+                continue
+
+            response.raise_for_status()
+            found_articles = response.json().get("articles", [])
+            if found_articles:
+                article = found_articles[0]
+                article['hashtag'] = query  # Add the original hashtag to the article for reference
+                print(f"✅ Successfully fetched article for {query}")
+                return article
+            else:
+                raise ValueError(f"🔍 No articles found for query: {query}")
+
+        except ValueError as ve:
+            print(str(ve))
+            raise
+        except requests.exceptions.RequestException as e:
+            if attempt == max_attempts - 1:  # Last attempt
+                print(f"Network error while fetching news for {query}: {str(e)}")
+                raise
+            wait_time = 2 ** attempt
+            print(f"⚠️ Network error on attempt {attempt + 1}/{max_attempts}. Waiting {wait_time} seconds before retry...")
+            time.sleep(wait_time)
+            continue
+        except Exception as e:
+            print(f"Unexpected error while fetching news for {query}: {str(e)}")
+            raise
+
+    # If we get here, all retries failed
+    raise requests.exceptions.RequestException(f"Failed to fetch news after {max_attempts} attempts")
