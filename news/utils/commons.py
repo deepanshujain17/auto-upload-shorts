@@ -34,8 +34,10 @@ def normalize_hashtag(text: str) -> str:
         str: Normalized text with words of length > 1.
     """
     text = text.lstrip("#")
-    words = re.findall(r'[A-Z][a-z]*', text)
-    # Filter out one-letter words
-    words = [word for word in words if len(word) > 1]
+    # Find groups like LOL or Fest or Day
+    matches = re.finditer(r'(?:[A-Z]{2,}(?=[A-Z][a-z]|$)|[A-Z][a-z]+)', text)
+
+    words = [m.group(0) for m in matches]
+
     return ' '.join(words) or text
 
