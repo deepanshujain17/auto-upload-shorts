@@ -6,6 +6,8 @@ from googleapiclient.discovery import build
 
 # Constants
 CLIENT_SECRETS_FILE = "client_secrets.json"
+# Scopes for YouTube API. Make sure to adjust the scopes based on your needs.
+#TODO: Test & update it for playlist insert if necessary
 SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
 TOKEN_PICKLE = "token.pkl"
 
