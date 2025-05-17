@@ -34,10 +34,13 @@ def normalize_hashtag(text: str) -> str:
         str: Normalized text with words of length > 1.
     """
     text = text.lstrip("#")
-    # Find groups like LOL or Fest or Day
-    matches = re.finditer(r'(?:[A-Z]{2,}(?=[A-Z][a-z]|$)|[A-Z][a-z]+)', text)
-
-    words = [m.group(0) for m in matches]
-
-    return ' '.join(words) or text
-
+    pattern = re.compile(
+        r'''
+            [A-Z]{3,}(?=[A-Z][a-z])  # acronyms (≥3 letters) before a Pascal-Case word
+            | [A-Z][a-z]+            # Pascal-Case words
+            | [A-Z]{3,}              # standalone acronyms (≥3 letters)
+            ''',
+        re.VERBOSE
+    )
+    words = pattern.findall(text)
+    return " ".join(words) or text
