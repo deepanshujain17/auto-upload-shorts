@@ -47,11 +47,23 @@ class VideoSettings:
     BROWSER_WAIT_TIME = 2  # seconds
 
 class YouTubeSettings:
-    DEFAULT_CATEGORY = "22"  # People & Blogs
+    DEFAULT_CATEGORY = 22  # People & Blogs
     DEFAULT_PRIVACY = "public"
     DEFAULT_TAGS = ["shorts", "news", "TrendingNow"]
     ARTICLE_MAX_TAGS = 3
     MAX_TAGS = 12  # Maximum number of tags allowed by YouTube
+    # Mapping of content categories to YouTube category IDs
+    CATEGORY_TO_YOUTUBE_ID = {
+        "general": 22,           # People & Blogs
+        "sports": 17,            # Sports
+        "world": 25,             # News & Politics
+        "nation": 25,            # News & Politics
+        "business": 26,          # Howto & Style (finance-oriented content)
+        "technology": 28,        # Science & Technology
+        "entertainment": 24,     # Entertainment
+        "science": 28,           # Science & Technology
+        "health": 26             # Howto & Style (for wellness/fitness)
+    }
 
 
 class PathSettings:
