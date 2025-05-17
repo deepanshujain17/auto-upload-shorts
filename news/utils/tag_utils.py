@@ -3,6 +3,21 @@ from collections import Counter
 from sklearn.feature_extraction.text import ENGLISH_STOP_WORDS
 
 def generate_tags_with_frequency(article, max_tags=3):
+    """
+    Generate frequency-based tags from an article's content.
+
+    Args:
+        article (dict): A dictionary containing article information with possible keys:
+            - title: The article's title
+            - description: A brief description of the article
+            - content: The main content of the article
+            - source: A dictionary containing source information with a 'name' key
+        max_tags (int, optional): Maximum number of tags to generate. Defaults to 3.
+
+    Returns:
+        list: A list of tuples containing (tag, frequency) pairs, sorted by frequency
+            in descending order, limited to max_tags items.
+    """
     # Combine relevant article text
     text = ' '.join(filter(None, [
         article.get('title', ''),

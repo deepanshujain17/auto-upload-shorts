@@ -10,4 +10,4 @@ python-dotenv
 selenium
 scikit-learn
 webdriver-manager
-
+beautifulsoup4==4.12.2

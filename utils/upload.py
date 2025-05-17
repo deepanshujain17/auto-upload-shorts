@@ -49,18 +49,25 @@ def upload_youtube_shorts(yt, category, overlay_video_output, article):
         Exception: If upload fails
     """
     try:
+        # Useful when category is not a single word (query)
+        category_tags = category.split()
         # Generate dynamic tags from article content
-        article_tags = [tag for tag, _ in generate_tags_with_frequency(article)]
+        article_tags = [tag for tag, _ in generate_tags_with_frequency(article,
+                                                                       max_tags=YouTubeSettings.ARTICLE_MAX_TAGS)]
 
-        # Combine with default tags, ensure uniqueness, and limit total tags
-        combined_tags = list(dict.fromkeys([category] + article_tags + YouTubeSettings.DEFAULT_TAGS))[:10]  # YouTube allows max 10 tags
+        # Combine with default tags, ensure uniqueness, and limit total tags to MAX_TAGS
+        combined_tags = list(dict.fromkeys(
+            category_tags +
+            article_tags +
+            YouTubeSettings.DEFAULT_TAGS))[:YouTubeSettings.MAX_TAGS]
 
         article_title = ' '.join(article.get("title", "No Title").split()[:8])
         title = f"Breaking News: {article_title}"
 
         article_description = article.get("description", "No Description")
+        category_tags_str = " ".join([f"#{tag}" for tag in category_tags])
         article_tags_str = " ".join([f"#{tag}" for tag in article_tags])
-        description = f"{article_description} {article_tags_str} #{category} #news #update #trends #shorts"
+        description = f"{article_description} {category_tags_str} {article_tags_str} #{category} #news #update #trends #shorts"
 
         youtube_category = YouTubeSettings.DEFAULT_CATEGORY
         privacy = YouTubeSettings.DEFAULT_PRIVACY

@@ -19,10 +19,10 @@ class NewsSettings:
     DEFAULT_CATEGORY_BGM = "bgm_cheerful"
     LANGUAGE = "en"
     COUNTRY = "in"
-    MINUTES_AGO = 240 # Change this to get the latest news
-    IN_FIELD = "title"
-    QUERY = "India"
-    MAX_ARTICLES = 1
+    MINUTES_AGO = 1440 # Change this to get the latest news #IMP
+    IN_FIELD = "title,description"
+    MAX_ARTICLES = 1 # TODO: In Future, get more articles to generate more videos with the same GNEWS Hits limit
+    SORT_BY = "publishedAt" # Another option: "relevance"
 
     # API Endpoints
     SEARCH_ENDPOINT = "https://gnews.io/api/v4/search"
@@ -50,6 +50,9 @@ class YouTubeSettings:
     DEFAULT_CATEGORY = "22"  # People & Blogs
     DEFAULT_PRIVACY = "public"
     DEFAULT_TAGS = ["shorts", "news", "TrendingNow"]
+    ARTICLE_MAX_TAGS = 3
+    MAX_TAGS = 12  # Maximum number of tags allowed by YouTube
+
 
 class PathSettings:
     # Directory paths
@@ -74,3 +77,9 @@ class PathSettings:
     @staticmethod
     def get_final_video(category: str) -> str:
         return f"{PathSettings.OUTPUT_DIR}/short_with_overlay_{category}.mp4"
+
+class TrendingSettings:
+    TRENDS_URL = "https://trends24.in/india"
+    USER_AGENT = "Mozilla/5.0"
+    DEFAULT_LIMIT = 50
+    MAX_HASHTAGS = 10  # Maximum number of hashtags to return #IMP
