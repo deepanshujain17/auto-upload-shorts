@@ -8,7 +8,7 @@ from googleapiclient.discovery import build
 CLIENT_SECRETS_FILE = "client_secrets.json"
 # Scopes for YouTube API. Make sure to adjust the scopes based on your needs.
 #TODO: Test & update it for playlist insert if necessary
-SCOPES = ["https://www.googleapis.com/auth/youtube.upload"]
+SCOPES = ["https://www.googleapis.com/auth/youtube.force-ssl"]
 TOKEN_PICKLE = "token.pkl"
 
 def authenticate_youtube():
