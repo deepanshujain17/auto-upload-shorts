@@ -6,7 +6,7 @@ from settings import TrendingSettings
 
 def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
     """
-    Fetch trending hashtags from trends24.in for India
+    Fetch trending hashtags from trends24.in/india
     Args:
         limit: Maximum number of hashtags to return (default: 50)
     Returns:

@@ -47,13 +47,16 @@ class VideoSettings:
     BROWSER_WAIT_TIME = 2  # seconds
 
 class YouTubeSettings:
-    DEFAULT_CATEGORY = 22  # People & Blogs
     DEFAULT_PRIVACY = "public"
     DEFAULT_TAGS = ["shorts", "news", "TrendingNow"]
+    # TODO: Add different default tags for category wise
     ARTICLE_MAX_TAGS = 3
-    MAX_TAGS = 12  # Maximum number of tags allowed by YouTube
+    MAX_TAGS = 12  # Maximum number of tags allowed by YouTube #IMP
+
+    # Default YouTube category ID for videos
+    DEFAULT_YOUTUBE_CATEGORY = 22        # People & Blogs
     # Mapping of content categories to YouTube category IDs
-    CATEGORY_TO_YOUTUBE_ID = {
+    CATEGORY_TO_YOUTUBE_CATEGORY_MAP = {
         "general": 22,           # People & Blogs
         "sports": 17,            # Sports
         "world": 25,             # News & Politics
@@ -65,6 +68,20 @@ class YouTubeSettings:
         "health": 26             # Howto & Style (for wellness/fitness)
     }
 
+    # YouTube Playlist Settings
+    DEFAULT_PLAYLIST_ID = "PLxkrFcfC1HKTjWUEuNsGkx7596lkYHmnM"     # #NowTrending 🔥 – What Everyone’s Talking About
+    # Mapping of content categories to the respective YouTube playlist IDs
+    CATEGORY_PLAYLIST_MAP = {
+        "general": "PLxkrFcfC1HKQtEf4Ief6JdVjej1vA9xbG",           # NewsFlash 🔥 Top Stories & Trends
+        "sports": "PLxkrFcfC1HKTo4hVW1uxhesL9T6j99NSP",            # Game On! ⚽ Sports Highlights & Updates
+        "world": "PLxkrFcfC1HKQ8WPQJUHA6B69C0ag8h5T1",             # Global Pulse 🌍 What’s Happening Around the World
+        "nation": "PLxkrFcfC1HKQ9EAijefBRgiEtlwQOaNYU",            # India Now 🇮🇳 Headlines That Matter
+        "business": "PLxkrFcfC1HKSnjFyVE2Je1KlrrjzPtUDJ",          # Market Moves 📈 Business & Economy Shorts
+        "technology": "PLxkrFcfC1HKTkvOIQKV0yByHn3uRdmE3g",        # Tech Shorts 🚀 Gadgets, AI & Future Bytes
+        "entertainment": "PLxkrFcfC1HKQRZA4hBZbW9T0AY-7TprxX",     # PopBeat 🎬 Movies, Celebs & Culture
+        "science": "PLxkrFcfC1HKRwOXokC0nh2gmnE4Vgwls5",           # Mind Blown 🔬 Fascinating Science & Discoveries
+        "health": "PLxkrFcfC1HKREoe7AA5sSsvhuae5-K2se",            # Health Shot 💪 Wellness, Fitness & Medical News
+    }
 
 class PathSettings:
     # Directory paths
@@ -93,5 +110,6 @@ class PathSettings:
 class TrendingSettings:
     TRENDS_URL = "https://trends24.in/india"
     USER_AGENT = "Mozilla/5.0"
-    DEFAULT_LIMIT = 50
+    DEFAULT_LIMIT = 100
     MAX_HASHTAGS = 10  # Maximum number of hashtags to return #IMP
+

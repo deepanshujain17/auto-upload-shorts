@@ -39,6 +39,7 @@ def process_keywords(yt):
     try:
         # Get trending hashtags
         hashtags = get_trending_hashtags()
+        print(f"\n📈 Trending hashtags:\n{hashtags}")
         if not hashtags:
             print("No trending hashtags found")
             return
