@@ -110,7 +110,6 @@ class PathSettings:
 class TrendingSettings:
     TRENDS_URL = "https://trends24.in/india"
     USER_AGENT = "Mozilla/5.0"
-    DEFAULT_LIMIT = 50
+    DEFAULT_LIMIT = 100
     MAX_HASHTAGS = 10  # Maximum number of hashtags to return #IMP
-
 
