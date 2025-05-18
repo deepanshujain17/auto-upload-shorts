@@ -1,6 +1,7 @@
 from googleapiclient.http import MediaFileUpload
 from news.utils.tag_utils import generate_tags_with_frequency
-from settings import YouTubeSettings
+from settings import YouTubeSettings, NewsSettings
+
 
 def upload_video(youtube, file_path, title, description, tags, category_id, privacy_status):
     """
@@ -81,20 +82,26 @@ def upload_youtube_shorts(yt, category, overlay_video_output, article):
         Exception: If upload fails
     """
     try:
-        # Useful when category is not a single word (query)
-        category_tags = category.split()
+        # Get Category Hashtags from mapping
+        category_tags = YouTubeSettings.CATEGORY_HASHTAG_MAP.get(category.lower(), [])
+        # If category := trending keyword query, create tags from query + default hashtags
+        if not category_tags:
+            category_tags = category.split() + YouTubeSettings.DEFAULT_HASHTAGS
+
         # Generate dynamic tags from article content
         article_tags = [tag for tag, _ in generate_tags_with_frequency(article,
                                                                        max_tags=YouTubeSettings.ARTICLE_MAX_TAGS)]
 
         # Combine with default tags, ensure uniqueness, and limit total tags to MAX_TAGS
+        # TODO: Review the order of the tags for best performance
         combined_tags = list(dict.fromkeys(
-            category_tags +
             article_tags +
-            YouTubeSettings.DEFAULT_TAGS))[:YouTubeSettings.MAX_TAGS]
+            category_tags))[:YouTubeSettings.MAX_TAGS]
 
         article_title = ' '.join(article.get("title", "No Title").split()[:8])
-        title = f"Breaking News: {article_title}"
+        # If category is search query, append trending keyword (query) as hashtags in title
+        title_hashtag_str = ' ' + ' '.join(f"#{tag}" for tag in category.split()[:3]) if category not in NewsSettings.CATEGORIES else ""
+        title = f"Breaking News: {article_title}{title_hashtag_str}"
 
         article_description = article.get("description", "No Description")
         category_tags_str = " ".join([f"#{tag}" for tag in category_tags])

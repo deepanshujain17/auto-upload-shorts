@@ -48,10 +48,42 @@ class VideoSettings:
 
 class YouTubeSettings:
     DEFAULT_PRIVACY = "public"
-    DEFAULT_TAGS = ["shorts", "news", "TrendingNow"]
-    # TODO: Add different default tags for category wise
     ARTICLE_MAX_TAGS = 3
-    MAX_TAGS = 12  # Maximum number of tags allowed by YouTube #IMP
+    MAX_TAGS = 9  # Maximum number of tags allowed by YouTube #IMP #TODO: Review
+
+    # Default HashTags (for trending keywords)
+    DEFAULT_HASHTAGS = ["shorts", "TrendingNow", "CurrentAffairs", "TopStories", "ViralNews"]
+    # Mapping of content categories to Relevant HashTags
+    CATEGORY_HASHTAG_MAP = {
+        "general": [
+            "shorts", "BreakingNews", "TrendingNow", "CurrentAffairs"
+        ],
+        "sports": [
+            "shorts", "SportsNews", "GameDay", "AthleteLife"
+        ],
+        "world": [
+            "shorts", "WorldNews", "GlobalUpdates", "CurrentAffairs"
+        ],
+        "nation": [
+            "shorts", "IndiaNews", "HeadlinesToday", "CivicBuzz"
+        ],
+        "business": [
+            "shorts", "MarketWatch", "BizNews", "EconomyToday"
+        ],
+        "technology": [
+            "shorts", "TechNews", "Innovation", "DigitalTrends"
+        ],
+        "entertainment": [
+            "shorts", "CelebBuzz", "TVandFilm", "PopCulture"
+        ],
+        "science": [
+            "shorts", "SciTalk", "SpaceAndBeyond", "Discovery"
+        ],
+        "health": [
+            "shorts", "HealthTips", "Wellness", "FitLife"
+        ]
+    }
+
 
     # Default YouTube category ID for videos
     DEFAULT_YOUTUBE_CATEGORY = 22        # People & Blogs
