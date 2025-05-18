@@ -52,7 +52,7 @@ class YouTubeSettings:
     MAX_TAGS = 9  # Maximum number of tags allowed by YouTube #IMP #TODO: Review
 
     # Default HashTags (for trending keywords)
-    DEFAULT_HASHTAGS = ["shorts", "TrendingNow", "CurrentAffairs", "TopStories", "ViralNews"]
+    DEFAULT_HASHTAGS = ["CurrentAffairs", "TrendingNow", "shorts", "TopStories", "ViralNews"]
     # Mapping of content categories to Relevant HashTags
     CATEGORY_HASHTAG_MAP = {
         "general": [

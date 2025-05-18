@@ -57,7 +57,7 @@ def process_keywords(yt):
                 overlay_video_output = create_overlay_video_output(query, overlay_image)
 
                 # Upload the video to YouTube Shorts
-                upload_youtube_shorts(yt, query, overlay_video_output, article)
+                upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
 
                 print(f"✅ Successfully processed hashtag {hashtag}")
             except Exception as e:
