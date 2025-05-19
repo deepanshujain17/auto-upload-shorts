@@ -139,10 +139,20 @@ def upload_youtube_shorts(
         print(f"Combined tags: {combined_tags}")
 
         # Prepare video title
-        article_title = ' '.join(article.get("title", "No Title").split()[:12])
-        # If hashtag, append hashtag in title else use first article tag
+        article_title = article.get("title", "No Title")
+        # If hashtag, use that else (category case) use first article tag
         title_hashtag_str = f"{hashtag}" if hashtag else f"#{article_tags[0]}"
-        title = f"Breaking News: {article_title} {title_hashtag_str}"
+
+        # Create base title with prefix
+        base_title = "Breaking News: "
+        # Calculate remaining characters for article title considering hashtag
+        max_article_length = 100 - len(base_title) - len(title_hashtag_str) - 1  # -1 for space before hashtag
+        truncated_article_title = ' '.join(article_title.split())  # First limit to 12 words
+        if len(truncated_article_title) > max_article_length:
+            truncated_article_title = truncated_article_title[:max_article_length].rsplit(' ', 1)[0]
+
+        # Append one hashtag to title
+        title = f"{base_title}{truncated_article_title} {title_hashtag_str}"
 
         # Prepare video description
         article_description = article.get("description", "No Description")
