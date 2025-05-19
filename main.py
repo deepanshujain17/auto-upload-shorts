@@ -3,7 +3,7 @@ import sys
 from utils.video_processor import create_overlay_video_output
 from utils.auth import authenticate_youtube
 from news.utils.commons import normalize_hashtag
-from utils.upload import upload_youtube_shorts
+from utils.shorts_uploader import upload_youtube_shorts
 from news.news_fetcher import generate_news_card
 from news.utils.trending_utils import get_trending_hashtags
 from settings import NewsSettings, PathSettings
