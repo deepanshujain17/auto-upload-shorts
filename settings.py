@@ -47,7 +47,7 @@ class VideoSettings:
     BROWSER_WAIT_TIME = 2  # seconds
 
 class YouTubeSettings:
-    DEFAULT_PRIVACY = "public"  # Options: "public", "private", "unlisted"
+    DEFAULT_PRIVACY = "private"  # Options: "public", "private", "unlisted"
     ARTICLE_MAX_TAGS = 3
     MAX_TAGS = 9  # Maximum number of tags allowed by YouTube #IMP #TODO: Review
 
