@@ -140,9 +140,9 @@ def upload_youtube_shorts(
 
         # Prepare video title
         article_title = ' '.join(article.get("title", "No Title").split()[:12])
-        # If category is hashtag query, append hashtag in title
-        title_hashtag_str = f" {hashtag}" if hashtag else ""
-        title = f"Breaking News: {article_title}{title_hashtag_str}"
+        # If hashtag, append hashtag in title else use first article tag
+        title_hashtag_str = f"{hashtag}" if hashtag else f"#{article_tags[0]}"
+        title = f"Breaking News: {article_title} {title_hashtag_str}"
 
         # Prepare video description
         article_description = article.get("description", "No Description")
