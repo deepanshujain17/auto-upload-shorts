@@ -19,8 +19,8 @@ class NewsSettings:
     DEFAULT_CATEGORY_BGM = "bgm_cheerful"
     LANGUAGE = "en"
     COUNTRY = "in"
-    MINUTES_AGO = 1440 # Change this to get the latest news #IMP
-    IN_FIELD = "title,description"
+    MINUTES_AGO = 1440 # 24-hours Change this to get the latest news #IMP
+    IN_FIELD = "title,description" # Not being used as of now
     MAX_ARTICLES = 1 # TODO: In Future, get more articles to generate more videos with the same GNEWS Hits limit
     SORT_BY = "publishedAt" # Another option: "relevance"
 
@@ -47,40 +47,41 @@ class VideoSettings:
     BROWSER_WAIT_TIME = 2  # seconds
 
 class YouTubeSettings:
-    DEFAULT_PRIVACY = "public"
+    DEFAULT_PRIVACY = "public"  # Options: "public", "private", "unlisted"
     ARTICLE_MAX_TAGS = 3
     MAX_TAGS = 9  # Maximum number of tags allowed by YouTube #IMP #TODO: Review
 
     # Default HashTags (for trending keywords)
-    DEFAULT_HASHTAGS = ["CurrentAffairs", "TrendingNow", "shorts", "TopStories", "ViralNews"]
+    DEFAULT_HASHTAGS = ["TrendingNow", "CurrentAffairs", "TopStories"]
+    EXTRA_DESCRIPTION_HASHTAGS = ["ViralNews", "shorts"]
     # Mapping of content categories to Relevant HashTags
     CATEGORY_HASHTAG_MAP = {
         "general": [
-            "BreakingNews", "TrendingNow", "CurrentAffairs", "shorts"
+            "BreakingNews", "TrendingNow", "CurrentAffairs"
         ],
         "sports": [
-            "SportsNews", "GameDay", "AthleteLife", "shorts"
+            "SportsNews", "GameDay", "AthleteLife"
         ],
         "world": [
-            "WorldNews", "GlobalUpdates", "CurrentAffairs", "shorts"
+            "WorldNews", "GlobalUpdates", "CurrentAffairs"
         ],
         "nation": [
-            "IndiaNews", "HeadlinesToday", "CivicBuzz", "shorts"
+            "IndiaNews", "HeadlinesToday", "CivicBuzz"
         ],
         "business": [
-            "MarketWatch", "BizNews", "EconomyToday", "shorts"
+            "MarketWatch", "BizNews", "EconomyToday"
         ],
         "technology": [
-            "TechNews", "Innovation", "DigitalTrends", "shorts"
+            "TechNews", "Innovation", "DigitalTrends"
         ],
         "entertainment": [
-            "CelebBuzz", "TVandFilm", "PopCulture", "shorts"
+            "CelebBuzz", "TVandFilm", "PopCulture"
         ],
         "science": [
-            "SciTalk", "SpaceAndBeyond", "Discovery", "shorts"
+            "SciTalk", "SpaceAndBeyond", "Discovery"
         ],
         "health": [
-            "HealthTips", "Wellness", "FitLife", "shorts"
+            "HealthTips", "Wellness", "FitLife"
         ]
     }
 
