@@ -23,11 +23,12 @@ def generate_news_card(identifier: str, is_keyword: bool = False) -> tuple[dict,
         print("📰 Fetching news and generating news cards...")
         if is_keyword:
             article = get_keyword_news(identifier)
-            print(f"{identifier} article:\n{article}")
+            print(f"Trending Keyword Article | {identifier}:\n{article}")
             if not article:
                 raise ValueError(f"No article found for keyword: {identifier}")
         else:
             article = get_trending_news(identifier)  # identifier is category in this case
+            print(f"Trending Category Article | {identifier}:\n{article}")
 
         # 2. Generate news card HTML
         html_output = PathSettings.get_html_output(identifier)
