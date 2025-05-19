@@ -38,7 +38,8 @@ def process_keywords(yt):
     """Process news for trending hashtags and upload to YouTube."""
     try:
         # Get trending hashtags
-        hashtags = get_trending_hashtags()
+        # hashtags = get_trending_hashtags()
+        hashtags = ["Apple", "iphone", "AsiaCup", "Nifty", "IPL2025"]
         print(f"\n📈 Trending hashtags:\n{hashtags}")
         if not hashtags:
             print("No trending hashtags found")
