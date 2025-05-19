@@ -74,19 +74,13 @@ NOTE: Total scheduled runs of both the workflows on any day, together should be 
 
 You can run the script locally in different modes:
 
-1. Process both categories and keywords:
 ```bash
-python main.py
-```
+Usage: python main.py [process_type]
 
-2. Process only categories:
-```bash
-python main.py categories
-```
-
-3. Process only keywords:
-```bash
-python main.py keywords
+process_type options:
+    all        - Process both categories and trending keywords (default)
+    categories - Process only predefined news categories
+    keywords   - Process only trending keywords/hashtags
 ```
 
 ## Project Structure
