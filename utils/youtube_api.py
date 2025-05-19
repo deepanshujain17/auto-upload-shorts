@@ -43,11 +43,16 @@ def upload_video(
     media = MediaFileUpload(file_path, resumable=True)
     request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
     response = None
+    last_progress = 0
 
     while response is None:
         status, response = request.next_chunk()
         if status:
-            print(f"Upload progress: {int(status.progress() * 100)}%")
+            current_progress = int(status.progress() * 100)
+            # Only print progress when it increases by 10%
+            if current_progress - last_progress >= 10:
+                print(f"Upload progress: {current_progress}%")
+                last_progress = current_progress
 
     print(f"✅ Video uploaded! Video ID: {response['id']}")
     return response["id"]
