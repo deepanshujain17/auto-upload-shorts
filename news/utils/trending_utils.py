@@ -10,7 +10,7 @@ def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
     Args:
         limit: Maximum number of hashtags to return (default: 50)
     Returns:
-        list: List of trending hashtags that match the pattern (letters, digits, underscore, spaces, # only)
+        list: List of unique trending hashtags that match the pattern (letters, digits, underscore, spaces, # only)
     """
     headers = {"User-Agent": TrendingSettings.USER_AGENT}
 
@@ -20,16 +20,17 @@ def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
         soup = BeautifulSoup(res.text, "html.parser")
 
         trends = soup.select("ol.trend-card__list li span.trend-name a.trend-link")
-        hashtags = []
+        unique_hashtags = set()
 
         pattern = re.compile(r'^[\w\s#]+$')  # letters, digits, underscore, spaces, # only
 
         for tag in trends[:limit]:
             text = tag.text.strip()
             if text.startswith("#") and pattern.match(text):
-                hashtags.append(text)
+                unique_hashtags.add(text)
 
-        return hashtags[:TrendingSettings.MAX_HASHTAGS]
+        # Convert set back to list and apply max limit
+        return list(unique_hashtags)[:TrendingSettings.MAX_HASHTAGS]
 
     except requests.RequestException as e:
         print(f"Error fetching trending hashtags: {e}")
