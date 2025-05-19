@@ -56,31 +56,31 @@ class YouTubeSettings:
     # Mapping of content categories to Relevant HashTags
     CATEGORY_HASHTAG_MAP = {
         "general": [
-            "shorts", "BreakingNews", "TrendingNow", "CurrentAffairs"
+            "BreakingNews", "TrendingNow", "CurrentAffairs", "shorts"
         ],
         "sports": [
-            "shorts", "SportsNews", "GameDay", "AthleteLife"
+            "SportsNews", "GameDay", "AthleteLife", "shorts"
         ],
         "world": [
-            "shorts", "WorldNews", "GlobalUpdates", "CurrentAffairs"
+            "WorldNews", "GlobalUpdates", "CurrentAffairs", "shorts"
         ],
         "nation": [
-            "shorts", "IndiaNews", "HeadlinesToday", "CivicBuzz"
+            "IndiaNews", "HeadlinesToday", "CivicBuzz", "shorts"
         ],
         "business": [
-            "shorts", "MarketWatch", "BizNews", "EconomyToday"
+            "MarketWatch", "BizNews", "EconomyToday", "shorts"
         ],
         "technology": [
-            "shorts", "TechNews", "Innovation", "DigitalTrends"
+            "TechNews", "Innovation", "DigitalTrends", "shorts"
         ],
         "entertainment": [
-            "shorts", "CelebBuzz", "TVandFilm", "PopCulture"
+            "CelebBuzz", "TVandFilm", "PopCulture", "shorts"
         ],
         "science": [
-            "shorts", "SciTalk", "SpaceAndBeyond", "Discovery"
+            "SciTalk", "SpaceAndBeyond", "Discovery", "shorts"
         ],
         "health": [
-            "shorts", "HealthTips", "Wellness", "FitLife"
+            "HealthTips", "Wellness", "FitLife", "shorts"
         ]
     }
 
