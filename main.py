@@ -68,13 +68,13 @@ def process_keywords(yt) -> None:
                 print(f"\n🔍 Processing hashtag: {hashtag}")
                 query = normalize_hashtag(hashtag)
 
-                # Generate news card with is_keyword=True
+                # 1. Generate news card with is_keyword=True
                 article, overlay_image = generate_news_card(query, is_keyword=True)
 
-                # Create the overlay video
+                # 2. Create the overlay video
                 overlay_video_output = create_overlay_video_output(query, overlay_image)
 
-                # Upload the video to YouTube Shorts
+                # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
 
                 print(f"✅ Successfully processed hashtag {hashtag}")

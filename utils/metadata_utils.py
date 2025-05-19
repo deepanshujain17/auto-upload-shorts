@@ -1,4 +1,4 @@
-from typing import List, Dict, Optional, Tuple
+from typing import List, Optional, Tuple
 
 from news.utils.tag_utils import generate_tags_with_frequency
 from settings import YouTubeSettings
@@ -40,6 +40,7 @@ def generate_video_tags(
     # Combine tags ensuring uniqueness and proper limits
     hashtag_tags = [hashtag.lstrip("#")] if hashtag else []
 
+    # Remove duplicates while preserving order
     combined_tags = list(dict.fromkeys(
         hashtag_tags +
         article_tags +
