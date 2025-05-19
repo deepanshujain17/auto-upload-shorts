@@ -82,20 +82,18 @@ def upload_youtube_shorts(yt, category, overlay_video_output, article, hashtag=N
         Exception: If upload fails
     """
     try:
-        # Get Category Hashtags from mapping
-        category_tags = YouTubeSettings.CATEGORY_HASHTAG_MAP.get(category.lower(), [])
-        # If category := trending keyword query, create tags from query + default hashtags
-        if hashtag:
-            category_tags = category.split() + YouTubeSettings.DEFAULT_HASHTAGS
+        # If category := trending keyword query, create tags from query + default hashtags else use category tags
+        category_tags = category.split() + YouTubeSettings.DEFAULT_HASHTAGS if hashtag else category_tags = YouTubeSettings.CATEGORY_HASHTAG_MAP.get(category.lower(), [])
 
         # Generate dynamic tags from article content
         article_tags = [tag for tag, _ in generate_tags_with_frequency(article,
                                                                        max_tags=YouTubeSettings.ARTICLE_MAX_TAGS)]
 
         # Combine with default tags, ensure uniqueness, and limit total tags to MAX_TAGS
+        hashtag_tags = [hashtag.lstrip("#")] if hashtag else []  # Ensure hashtag is stripped of leading '#'
         # TODO: Review the order of the tags for best performance
         combined_tags = list(dict.fromkeys(
-            [hashtag.lstrip("#")] +
+            hashtag_tags +
             article_tags +
             category_tags))[:YouTubeSettings.MAX_TAGS]
 
