@@ -40,12 +40,15 @@ def generate_video_tags(
     # Combine tags ensuring uniqueness and proper limits
     hashtag_tags = [hashtag.lstrip("#")] if hashtag else []
 
-    # Remove duplicates while preserving order
-    combined_tags = list(dict.fromkeys(
-        hashtag_tags +
-        article_tags +
-        category_tags
-    ))
+    # Combine tags from all sources, removing case-insensitive duplicates while preserving original order and casing
+    seen = set()
+    combined_tags = []
+
+    for tag in hashtag_tags + article_tags + category_tags:
+        tag_lower = tag.lower()
+        if tag_lower not in seen:
+            seen.add(tag_lower)
+            combined_tags.append(tag)
 
     return article_tags, combined_tags
 
