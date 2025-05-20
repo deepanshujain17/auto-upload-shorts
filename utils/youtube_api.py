@@ -37,11 +37,16 @@ def upload_video(
             "tags": tags,
             "categoryId": category_id
         },
-        "status": {"privacyStatus": privacy_status}
+        "status": {
+            "privacyStatus": privacy_status
+        },
+        "contentDeclarations": {
+            "hasAlteredContent": False  # This means content is *not* altered
+        }
     }
 
     media = MediaFileUpload(file_path, resumable=True)
-    request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
+    request = youtube.videos().insert(part="snippet,status,contentDeclarations", body=body, media_body=media)
     response = None
     last_progress = 0
 
