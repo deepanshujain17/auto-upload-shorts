@@ -28,6 +28,8 @@ def create_overlay_video(video_path, image_path, output_path="output_with_overla
         codec=VideoSettings.VIDEO_CODEC,
         audio_codec=VideoSettings.AUDIO_CODEC,
         logger=None) # Suppress moviepy logger. logger="bar" (default) providees a progress bar
+
+    print("✅ Overlay video created successfully!")
     return output_path
 
 def create_overlay_video_output(category: str, overlay_image: str) -> str:

@@ -40,6 +40,7 @@ def generate_news_card(identifier: str, is_keyword: bool = False) -> tuple[dict,
         print(f"🖼️ Rendering HTML to image for {identifier}...")
         render_card_to_image(html_output, overlay_image)
 
+        print("✅ Finished generating news card.")
         return article, overlay_image
     except Exception as e:
         print(f"❌ Error generating news card for {identifier}: {str(e)}")
