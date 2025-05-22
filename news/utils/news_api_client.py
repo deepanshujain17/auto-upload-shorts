@@ -1,38 +1,10 @@
 import requests
 import time
-import os
 from datetime import datetime
-from pathlib import Path
 from .commons import get_zulu_time_minus
 from settings import NewsSettings
+from .hashtag_storage import HashtagStorage
 
-def _get_hashtag_file_path():
-    """Returns the path to trending hashtags file"""
-    output_dir = Path(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) / "output/history"
-    output_dir.mkdir(parents=True, exist_ok=True)  # Create directory if it doesn't exist
-    file_path = output_dir / "trending_hashtags.txt"
-    if not file_path.exists():
-        file_path.touch()  # Create the file if it doesn't exist
-    return file_path
-
-def _read_hashtag_history():
-    """Read the hashtag history file and return a set of (hashtag, date) tuples"""
-    file_path = _get_hashtag_file_path()
-    history = set()
-    if file_path.exists():
-        with open(file_path, 'r') as f:
-            for line in f:
-                parts = line.strip().split(',')
-                if len(parts) == 2:
-                    history.add((parts[0], parts[1]))
-    return history
-
-def _save_hashtag(hashtag):
-    """Save a hashtag with current date to the history file"""
-    file_path = _get_hashtag_file_path()
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    with open(file_path, 'a') as f:
-        f.write(f"{hashtag},{current_date}\n")
 
 def get_trending_news(category=None):
     """
@@ -77,6 +49,7 @@ def get_trending_news(category=None):
         print(f"Unexpected error while fetching {category}: {str(e)}")
         raise
 
+
 def get_keyword_news(query: str) -> dict:
     """
     Fetch news article from GNews API using a search query.
@@ -94,9 +67,7 @@ def get_keyword_news(query: str) -> dict:
         requests.exceptions.RequestException: If there's a network error after all retries
     """
     # Check if this hashtag was already processed today
-    current_date = datetime.now().strftime('%Y-%m-%d')
-    history = _read_hashtag_history()
-    if (query, current_date) in history:
+    if HashtagStorage.is_hashtag_processed_today(query):
         raise ValueError(f"🔄 Query '{query}' was already processed today")
 
     from_time = get_zulu_time_minus(NewsSettings.MINUTES_AGO)
@@ -129,7 +100,7 @@ def get_keyword_news(query: str) -> dict:
                 article = found_articles[0]
                 article['hashtag'] = query  # Add the original hashtag to the article for reference
                 # Save the successful query to history
-                _save_hashtag(query)
+                HashtagStorage.save_hashtag(query)
                 print(f"✅ Successfully fetched article for {query}")
                 return article
             else:
