@@ -39,6 +39,7 @@ def normalize_hashtag(text: str) -> str:
             [A-Z]{3,}(?=[A-Z][a-z])  # acronyms (≥3 letters) before a Pascal-Case word
             | [A-Z][a-z]+            # Pascal-Case words
             | [A-Z]{3,}              # standalone acronyms (≥3 letters)
+            | [A-Z]{2,}              # standalone acronyms (≥2 letters)
             ''',
         re.VERBOSE
     )
