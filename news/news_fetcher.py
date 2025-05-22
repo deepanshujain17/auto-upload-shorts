@@ -1,4 +1,4 @@
-from news.utils.news_utils import get_trending_news, get_keyword_news
+from news.utils.news_api_client import get_trending_news, get_keyword_news
 from news.utils.html_utils import create_html_card
 from news.utils.browser_utils import render_card_to_image
 from settings import PathSettings
