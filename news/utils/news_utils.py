@@ -9,7 +9,11 @@ from settings import NewsSettings
 def _get_hashtag_file_path():
     """Returns the path to trending hashtags file"""
     output_dir = Path(os.path.dirname(os.path.dirname(os.path.dirname(__file__)))) / "output/history"
-    return output_dir / "trending_hashtags.txt"
+    output_dir.mkdir(parents=True, exist_ok=True)  # Create directory if it doesn't exist
+    file_path = output_dir / "trending_hashtags.txt"
+    if not file_path.exists():
+        file_path.touch()  # Create the file if it doesn't exist
+    return file_path
 
 def _read_hashtag_history():
     """Read the hashtag history file and return a set of (hashtag, date) tuples"""
