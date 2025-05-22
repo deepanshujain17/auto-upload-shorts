@@ -52,36 +52,36 @@ class YouTubeSettings:
     MAX_TAGS = 9  # Maximum number of tags allowed by YouTube #IMP #TODO: Review
 
     # Default HashTags (for trending keywords)
-    DEFAULT_HASHTAGS = ["TrendingNow", "CurrentAffairs", "TopStories"]
-    EXTRA_DESCRIPTION_HASHTAGS = ["ViralNews", "shorts"]
+    DEFAULT_HASHTAGS = ["TrendingNow", "CurrentAffairs"]
+    EXTRA_DESCRIPTION_HASHTAGS = ["shorts"]
     # Mapping of content categories to Relevant HashTags
     CATEGORY_HASHTAG_MAP = {
         "general": [
-            "BreakingNews", "TrendingNow", "CurrentAffairs"
+            "BreakingNews", "TrendingNow"
         ],
         "sports": [
-            "SportsNews", "GameDay", "AthleteLife"
+            "SportsNews", "GameDay"
         ],
         "world": [
-            "WorldNews", "GlobalUpdates", "CurrentAffairs"
+            "WorldNews", "GlobalUpdates"
         ],
         "nation": [
-            "IndiaNews", "HeadlinesToday", "CivicBuzz"
+            "IndiaNews", "HeadlinesToday"
         ],
         "business": [
-            "MarketWatch", "BizNews", "EconomyToday"
+            "MarketWatch", "EconomyToday"
         ],
         "technology": [
-            "TechNews", "Innovation", "DigitalTrends"
+            "TechNews", "Innovation"
         ],
         "entertainment": [
-            "CelebBuzz", "TVandFilm", "PopCulture"
+            "CelebBuzz", "PopCulture"
         ],
         "science": [
-            "SciTalk", "SpaceAndBeyond", "Discovery"
+            "SpaceAndBeyond", "Discovery"
         ],
         "health": [
-            "HealthTips", "Wellness", "FitLife"
+            "HealthTips", "Wellness"
         ]
     }
 
