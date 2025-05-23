@@ -107,8 +107,7 @@ def main() -> None:
 
         # Authenticate to YouTube
         print("🔐 Authenticating to YouTube...")
-        # yt = authenticate_youtube()
-        yt = None
+        yt = authenticate_youtube()
 
         # Run the specified process
         if process_type in ["categories", "all"]:
