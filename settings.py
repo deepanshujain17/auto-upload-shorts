@@ -151,6 +151,4 @@ class TrendingSettings:
         "India Military",
         "IPL",
         "Indian Startups",
-        "Indian Stock Market",
-        "Virat Kohli"
     ]

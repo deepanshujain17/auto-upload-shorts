@@ -102,7 +102,7 @@ def generate_video_description(
     article_description = article.get("description", "No Description")
 
     # Publisher (source) URL
-    source_url = article.get("source", {}).get("url", "")
+    source_url = article.get("url", "")
 
     # Hashtags from combined tags and extra tags
     combined_tags_str = " ".join(f"#{tag}" for tag in combined_tags)
