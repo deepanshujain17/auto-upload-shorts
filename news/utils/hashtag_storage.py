@@ -36,6 +36,7 @@ class HashtagStorage:
         current_date = datetime.now().strftime('%Y-%m-%d')
         with open(file_path, 'a') as f:
             f.write(f"{hashtag},{current_date}\n")
+        print(f"Saved hashtag '{hashtag}' with date '{current_date}' to history.")
 
     @classmethod
     def is_hashtag_processed_today(cls, hashtag):
