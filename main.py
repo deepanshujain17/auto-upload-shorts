@@ -7,7 +7,7 @@ from utils.shorts_uploader import upload_youtube_shorts
 from news.utils.commons import normalize_hashtag
 from news.news_fetcher import generate_news_card
 from news.utils.trending_utils import get_trending_hashtags
-from settings import NewsSettings, PathSettings
+from settings import NewsSettings, PathSettings, TrendingSettings
 
 
 def process_categories(yt) -> None:
@@ -46,20 +46,24 @@ def process_categories(yt) -> None:
 
 def process_keywords(yt) -> None:
     """
-    Process news for trending hashtags and upload to YouTube.
+    Process news for trending hashtags and manual queries, then upload to YouTube.
 
     Args:
         yt: Authenticated YouTube API client
     """
     try:
-        # Get trending hashtags
-        hashtags = get_trending_hashtags()
-        print(f"\n📈 Found {len(hashtags)} trending hashtags:")
+        # Get trending hashtags and combine with manual queries
+        trending_hashtags = get_trending_hashtags()
+        manual_hashtags = TrendingSettings.MANUAL_HASHTAG_QUERIES
+        hashtags = list(set(trending_hashtags + manual_hashtags))  # Remove duplicates
+
+        print(f"\n📈 Found {len(hashtags)} hashtags to process:")
         for idx, tag in enumerate(hashtags, 1):
-            print(f"{idx}. {tag}")
+            source = "(manual)" if tag in manual_hashtags else "(trending)"
+            print(f"{idx}. {tag} {source}")
 
         if not hashtags:
-            print("No trending hashtags found")
+            print("No hashtags found to process")
             return
 
         # Process each hashtag

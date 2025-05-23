@@ -52,36 +52,36 @@ class YouTubeSettings:
     MAX_TAGS = 9  # Maximum number of tags allowed by YouTube #IMP #TODO: Review
 
     # Default HashTags (for trending keywords)
-    DEFAULT_HASHTAGS = ["TrendingNow", "CurrentAffairs", "TopStories"]
-    EXTRA_DESCRIPTION_HASHTAGS = ["ViralNews", "shorts"]
+    DEFAULT_HASHTAGS = ["TrendingNow", "CurrentAffairs"]
+    EXTRA_DESCRIPTION_HASHTAGS = ["shorts"]
     # Mapping of content categories to Relevant HashTags
     CATEGORY_HASHTAG_MAP = {
         "general": [
-            "BreakingNews", "TrendingNow", "CurrentAffairs"
+            "BreakingNews", "TrendingNow"
         ],
         "sports": [
-            "SportsNews", "GameDay", "AthleteLife"
+            "SportsNews", "GameDay"
         ],
         "world": [
-            "WorldNews", "GlobalUpdates", "CurrentAffairs"
+            "WorldNews", "GlobalUpdates"
         ],
         "nation": [
-            "IndiaNews", "HeadlinesToday", "CivicBuzz"
+            "IndiaNews", "HeadlinesToday"
         ],
         "business": [
-            "MarketWatch", "BizNews", "EconomyToday"
+            "MarketWatch", "EconomyToday"
         ],
         "technology": [
-            "TechNews", "Innovation", "DigitalTrends"
+            "TechNews", "Innovation"
         ],
         "entertainment": [
-            "CelebBuzz", "TVandFilm", "PopCulture"
+            "CelebBuzz", "PopCulture"
         ],
         "science": [
-            "SciTalk", "SpaceAndBeyond", "Discovery"
+            "SpaceAndBeyond", "Discovery"
         ],
         "health": [
-            "HealthTips", "Wellness", "FitLife"
+            "HealthTips", "Wellness"
         ]
     }
 
@@ -144,5 +144,11 @@ class TrendingSettings:
     TRENDS_URL = "https://trends24.in/india"
     USER_AGENT = "Mozilla/5.0"
     DEFAULT_LIMIT = 100
-    MAX_HASHTAGS = 10  # Maximum number of hashtags to return #IMP
-
+    MAX_HASHTAGS = 5  # Maximum number of hashtags to return #IMP
+    # Add MANUAL & SEASONAL hashtag queries here. These will be processed alongside trending hashtags. #IMP
+    MANUAL_HASHTAG_QUERIES = [
+        "Indian Army",
+        "India Military",
+        "IPL",
+        "Indian Startups",
+    ]
