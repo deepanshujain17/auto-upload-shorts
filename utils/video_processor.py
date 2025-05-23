@@ -1,7 +1,11 @@
 from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
+from playsound import playsound
+
 from settings import VideoSettings, NewsSettings, PathSettings
+from utils.media_utils.audio_utils import convert_text_to_speech
+
 
 def create_overlay_video(video_path, image_path, output_path="output_with_overlay.mp4"):
     """
@@ -56,3 +60,58 @@ def create_overlay_video_output(category: str, overlay_image: str) -> str:
         print(f"❌ Error creating overlay video for {category}: {str(e)}")
         raise
 
+def generate_article_audio(article: dict) -> str:
+    """Generate audio from article using text-to-speech.
+
+    Args:
+        article (dict): Article dictionary containing title, description, and content
+
+    Returns:
+        str: Path to the generated audio file
+    """
+    # Extract article components
+    title = article.get('title', '')
+    description = article.get('description', '')
+    content = article.get('content', '')
+
+    if not title and not description and not content:
+        raise ValueError("Article must contain at least one of: title, description, or content")
+
+    # Combine text with appropriate pauses
+    full_text = f"{title}. \n\n{description}. \n\n{content}"
+
+    ssml_text = """
+    <speak>
+        <prosody rate="95%" volume="loud">
+          {}
+        </prosody>
+    </speak>
+    """.format(full_text)
+
+
+    article_audio = convert_text_to_speech(text=ssml_text,
+                                           voice_id="Joanna",
+                                           engine="neural",
+                                           text_type="ssml")
+    if not article_audio:
+        raise ValueError("Failed to generate audio from text.")
+
+    play_audio(article_audio)
+    return article_audio
+
+
+
+def play_audio(article_audio) -> None:
+    """
+    Play the generated audio using playsound.
+    Args:
+        article_audio: The audio stream from the text-to-speech conversion
+    """
+    # Save the audio to a temporary file
+    import tempfile
+    with tempfile.NamedTemporaryFile(delete=False, suffix=".mp3") as tmpfile:
+        tmpfile.write(article_audio['AudioStream'].read())
+        tmpfile_path = tmpfile.name
+
+    # Play the audio
+    playsound(tmpfile_path)
