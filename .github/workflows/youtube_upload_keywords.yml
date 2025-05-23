@@ -22,6 +22,14 @@ jobs:
         with:
           python-version: '3.10'
 
+      - name: Cache trending hashtags history
+        uses: actions/cache@v3
+        with:
+          path: output/history/trending_hashtags.txt
+          key: trending-hashtags-latest
+          restore-keys: |
+            trending-hashtags-
+
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
@@ -42,5 +50,24 @@ jobs:
         run: |
           echo "${{ secrets.CLIENT_SECRETS_B64 }}" | base64 -d > client_secrets.json
 
+      - name: Check cached file presence
+        run: |
+          if [ -f output/history/trending_hashtags.txt ]; then
+            echo "✅ Trending hashtags file found in cache."
+            cat output/history/trending_hashtags.txt
+          else
+            echo "❌ No cached trending hashtags file found."
+          fi
+
       - name: Run upload script
         run: python main.py keywords
+
+      - name: Show updated trending hashtags file
+        run: |
+          echo "🔄 Updated trending hashtags:"
+          cat output/history/trending_hashtags.txt
+
+      - name: Check file hash
+        run: |
+          echo "🔐 File hash:"
+          sha256sum output/history/trending_hashtags.txt
