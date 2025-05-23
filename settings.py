@@ -16,6 +16,7 @@ class NewsSettings:
         "nation": "bgm_cheerful",
         "default": "bgm_chubina"
     }
+    CATEGORY_BG_IMAGE = {"default": "bg_image"}
     LANGUAGE = "en"
     COUNTRY = "in"
     MINUTES_AGO = 1440 # 24-hours Change this to get the latest news #IMP
