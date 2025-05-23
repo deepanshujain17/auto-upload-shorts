@@ -55,118 +55,6 @@ def generate_article_audio(article: dict, output_path: str = None) -> str:
     )
 
 
-def create_video_with_audio(image_path: str,
-                          fg_audio_path: str,
-                          bg_audio_path: str,
-                          output_path: str,
-                          fg_volume: float = 1.0,
-                          bg_volume: float = 0.1,
-                          fps: int = 24) -> str:
-    """Create a video by combining a static image with foreground and background audio.
-
-    Args:
-        image_path (str): Path to the image file to use as video
-        fg_audio_path (str): Path to the foreground audio file (e.g., speech)
-        bg_audio_path (str): Path to the background audio file (e.g., music)
-        output_path (str): Path where the output video will be saved
-        fg_volume (float): Volume multiplier for foreground audio (default: 1.0)
-        bg_volume (float): Volume multiplier for background audio (default: 0.1)
-        fps (int): Frames per second for the output video (default: 24)
-
-    Returns:
-        str: Path to the generated video file
-
-    Raises:
-        FileNotFoundError: If any input files are missing
-        ValueError: If invalid parameters are provided
-    """
-    # Validate input files
-    for file_path in [image_path, fg_audio_path, bg_audio_path]:
-        if not Path(file_path).is_file():
-            raise FileNotFoundError(f"Input file not found: {file_path}")
-
-    # Ensure output directory exists
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-
-    # Load and configure clips with proper resource management
-    with AudioFileClip(fg_audio_path) as fg_audio, \
-         AudioFileClip(bg_audio_path) as bg_audio, \
-         ImageClip(image_path) as image_clip:
-
-        # Configure audio clips
-        fg_audio = fg_audio.with_volume_scaled(fg_volume)
-        duration = fg_audio.duration
-        bg_audio = bg_audio.with_volume_scaled(bg_volume).with_duration(duration)
-
-        # Create combined audio
-        combined_audio = CompositeAudioClip([fg_audio, bg_audio])
-
-        # Configure video
-        image_clip = image_clip.with_duration(duration).with_fps(fps)
-        video = image_clip.with_audio(combined_audio)
-
-        # Write final video
-        video.write_videofile(
-            output_path,
-            fps=fps,
-            audio_codec='aac',
-            logger=None
-        )
-
-    print(f"✅ Video created successfully: {output_path}")
-    return output_path
-
-
-def create_overlay_video(video_path: str, image_path: str, output_path: str = None) -> str:
-    """Create a video with an image overlay.
-
-    Args:
-        video_path (str): Path to the input video file
-        image_path (str): Path to the overlay image file
-        output_path (str, optional): Path where the output video will be saved
-
-    Returns:
-        str: Path to the output video file
-
-    Raises:
-        FileNotFoundError: If input files are missing
-        ValueError: If video processing fails
-    """
-    # Validate input files
-    for file_path in [video_path, image_path]:
-        if not Path(file_path).is_file():
-            raise FileNotFoundError(f"Input file not found: {file_path}")
-
-    # Use default output path if none provided
-    if output_path is None:
-        output_path = str(Path(video_path).parent / "output_with_overlay.mp4")
-
-    # Ensure output directory exists
-    Path(output_path).parent.mkdir(parents=True, exist_ok=True)
-
-    # Load and process video with proper resource management
-    with VideoFileClip(video_path) as video, \
-         ImageClip(image_path) as image:
-
-        # Configure image overlay
-        image = (image
-                .with_duration(video.duration)
-                .resized(height=VideoSettings.IMAGE_HEIGHT)
-                .with_position(("center", video.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET)))
-
-        # Create and write final video
-        final = CompositeVideoClip([video, image])
-        final.write_videofile(
-            output_path,
-            codec=VideoSettings.VIDEO_CODEC,
-            audio_codec=VideoSettings.AUDIO_CODEC,
-            logger=None
-        )
-
-    print(f"✅ Overlay video created successfully: {output_path}")
-    return output_path
-
-
 def create_overlay_video_output(category: str, article: dict, overlay_image: str) -> str:
     """Create a complete video with news overlay and audio.
 
@@ -183,41 +71,69 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
         FileNotFoundError: If required files are missing
     """
     try:
-        # Get paths for output files
-        final_outcome_video = PathSettings.get_final_video(category)
-        final_bg_video_path = PathSettings.get_bg_video(category)
+        # Get output path
+        final_video = PathSettings.get_final_video(category)
 
         # Get background assets
-        category_bg_image = NewsSettings.CATEGORY_BG_IMAGE.get(category, NewsSettings.CATEGORY_BG_IMAGE["default"])
-        bg_image = PathSettings.get_image_path(category_bg_image)
-        print(f"📸 Using background image: {bg_image}")
-
-        category_bg_music = NewsSettings.CATEGORY_BGM.get(category, NewsSettings.CATEGORY_BGM["default"])
-        bg_music = PathSettings.get_music_path(category_bg_music)
-        print(f"🎵 Using background music: {bg_music}")
+        bg_image = PathSettings.get_image_path(
+            NewsSettings.CATEGORY_BG_IMAGE.get(category, NewsSettings.CATEGORY_BG_IMAGE["default"])
+        )
+        bg_music = PathSettings.get_music_path(
+            NewsSettings.CATEGORY_BGM.get(category, NewsSettings.CATEGORY_BGM["default"])
+        )
+        print(f"📸 Using background: {bg_image}")
+        print(f"🎵 Using music: {bg_music}")
 
         # Generate article audio
         article_audio = generate_article_audio(article)
-        print(f"🎙️ Generated article audio: {article_audio}")
+        print(f"🎙️ Generated audio: {article_audio}")
 
-        # Create video with background image and audio
-        print(f"🎬 Creating base video for {category}...")
-        create_video_with_audio(
-            image_path=bg_image,
-            fg_audio_path=article_audio,
-            bg_audio_path=bg_music,
-            output_path=final_bg_video_path,
-            fg_volume=1.0,
-            bg_volume=0.1,
-            fps=VideoSettings.FPS
-        )
+        # Validate all required files exist
+        for path in [bg_image, bg_music, article_audio, overlay_image]:
+            if not Path(path).is_file():
+                raise FileNotFoundError(f"Required file not found: {path}")
 
-        # Add overlay to the video
-        print(f"🎨 Adding overlay to video for {category}...")
-        output = create_overlay_video(final_bg_video_path, overlay_image, final_outcome_video)
+        # Ensure output directory exists
+        Path(final_video).parent.mkdir(parents=True, exist_ok=True)
 
-        print(f"✅ Final video created successfully: {output}")
-        return output
+        # Create video with all components in one step
+        with AudioFileClip(article_audio) as speech_audio, \
+             AudioFileClip(bg_music) as music_audio, \
+             ImageClip(bg_image) as bg_clip, \
+             ImageClip(overlay_image) as overlay_clip:
+
+            print("speech_audio duration:", speech_audio.duration)
+            # Configure audio
+            speech_audio = speech_audio.with_volume_scaled(1.0)
+            duration = speech_audio.duration
+            music_audio = music_audio.with_volume_scaled(0.1).with_duration(duration)
+            print("music_audio duration:", music_audio.duration)
+            combined_audio = CompositeAudioClip([speech_audio, music_audio])
+            print("combined_audio duration:", combined_audio.duration)
+
+            # Configure video clips
+            bg_clip = bg_clip.with_duration(duration).with_fps(VideoSettings.FPS)
+            overlay_clip = (overlay_clip
+                          .with_duration(duration)
+                          .resized(height=VideoSettings.IMAGE_HEIGHT)
+                          .with_position(("center", bg_clip.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET)))
+
+            print("bg_clip duration:", bg_clip.duration)
+            print("overlay_clip duration:", overlay_clip.duration)
+
+            # Combine everything
+            final = CompositeVideoClip([bg_clip, overlay_clip]).with_audio(combined_audio)
+            print(f"final duration: {final.duration}")
+            final.write_videofile(
+                final_video,
+                fps=VideoSettings.FPS,
+                codec=VideoSettings.VIDEO_CODEC,
+                audio_codec=VideoSettings.AUDIO_CODEC,
+                logger=None
+            )
+
+        print(f"✅ Video created successfully: {final_video}")
+        return final_video
 
     except Exception as e:
         print(f"❌ Error creating video for {category}: {str(e)}")
