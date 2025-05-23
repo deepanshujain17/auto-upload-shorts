@@ -144,8 +144,11 @@ class TrendingSettings:
     TRENDS_URL = "https://trends24.in/india"
     USER_AGENT = "Mozilla/5.0"
     DEFAULT_LIMIT = 100
-    MAX_HASHTAGS = 0  # Maximum number of hashtags to return #IMP
+    MAX_HASHTAGS = 5  # Maximum number of hashtags to return #IMP
     # Add MANUAL & SEASONAL hashtag queries here. These will be processed alongside trending hashtags. #IMP
     MANUAL_HASHTAG_QUERIES = [
+        "Indian Army",
+        "India Military",
         "IPL",
+        "Indian Startups",
     ]
