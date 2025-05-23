@@ -11,9 +11,6 @@ class NewsSettings:
     # News API Settings
     CATEGORIES = ["general", "sports", "world", "nation", "business", "technology", "entertainment", "science", "health"]
     CATEGORY_BGM = {
-        "sports": "bgm_tararara",
-        "entertainment": "bgm_chubina",
-        "nation": "bgm_cheerful",
         "default": "bgm_chubina"
     }
     CATEGORY_BG_IMAGE = {"default": "bg_image"}
@@ -146,10 +143,6 @@ class PathSettings:
     @staticmethod
     def get_image_path(bg_image: str) -> str:
         return f"{PathSettings.ASSETS_IMAGE_DIR}/{bg_image}.png"
-
-    @staticmethod
-    def get_bg_video(category: str) -> str:
-        return f"{PathSettings.OUTPUT_DIR}/bgv_output/bgv_{category}.mp4"
 
     @staticmethod
     def get_final_video(category: str) -> str:
