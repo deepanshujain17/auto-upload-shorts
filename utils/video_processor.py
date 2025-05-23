@@ -6,7 +6,6 @@ from moviepy.audio.AudioClip import CompositeAudioClip
 from settings import VideoSettings, NewsSettings, PathSettings
 from utils.media_utils.audio_utils import convert_text_to_speech
 from pathlib import Path
-import contextlib
 
 
 def generate_article_audio(article: dict, output_path: str = None) -> str:
@@ -89,30 +88,22 @@ def create_video_with_audio(image_path: str,
     # Ensure output directory exists
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
-    # Use context managers for proper resource cleanup
-    with contextlib.ExitStack() as stack:
-        # Load and configure audio clips
-        fg_audio = stack.enter_context(AudioFileClip(fg_audio_path).with_volume_scaled(fg_volume))
-        duration = fg_audio.duration
+    # Load and configure clips with proper resource management
+    with AudioFileClip(fg_audio_path) as fg_audio, \
+         AudioFileClip(bg_audio_path) as bg_audio, \
+         ImageClip(image_path) as image_clip:
 
-        bg_audio = stack.enter_context(
-            AudioFileClip(bg_audio_path)
-            .with_volume_scaled(bg_volume)
-            .with_duration(duration)
-        )
+        # Configure audio clips
+        fg_audio = fg_audio.with_volume_scaled(fg_volume)
+        duration = fg_audio.duration
+        bg_audio = bg_audio.with_volume_scaled(bg_volume).with_duration(duration)
 
         # Create combined audio
-        combined_audio = stack.enter_context(CompositeAudioClip([fg_audio, bg_audio]))
+        combined_audio = CompositeAudioClip([fg_audio, bg_audio])
 
-        # Create image-based video
-        image_clip = stack.enter_context(
-            ImageClip(image_path)
-            .with_duration(duration)
-            .with_fps(fps)
-        )
-
-        # Combine video and audio
-        video = stack.enter_context(image_clip.with_audio(combined_audio))
+        # Configure video
+        image_clip = image_clip.with_duration(duration).with_fps(fps)
+        video = image_clip.with_audio(combined_audio)
 
         # Write final video
         video.write_videofile(
@@ -153,20 +144,18 @@ def create_overlay_video(video_path: str, image_path: str, output_path: str = No
     # Ensure output directory exists
     Path(output_path).parent.mkdir(parents=True, exist_ok=True)
 
-    with contextlib.ExitStack() as stack:
-        # Load video and create image overlay
-        video = stack.enter_context(VideoFileClip(video_path))
-        image = stack.enter_context(
-            ImageClip(image_path)
-            .with_duration(video.duration)
-            .resized(height=VideoSettings.IMAGE_HEIGHT)
-            .with_position(("center", video.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET))
-        )
+    # Load and process video with proper resource management
+    with VideoFileClip(video_path) as video, \
+         ImageClip(image_path) as image:
 
-        # Combine video and overlay
-        final = stack.enter_context(CompositeVideoClip([video, image]))
+        # Configure image overlay
+        image = (image
+                .with_duration(video.duration)
+                .resized(height=VideoSettings.IMAGE_HEIGHT)
+                .with_position(("center", video.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET)))
 
-        # Write final video
+        # Create and write final video
+        final = CompositeVideoClip([video, image])
         final.write_videofile(
             output_path,
             codec=VideoSettings.VIDEO_CODEC,
