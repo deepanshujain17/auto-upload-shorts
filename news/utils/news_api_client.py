@@ -1,6 +1,5 @@
 import requests
 import time
-from datetime import datetime
 from .commons import get_zulu_time_minus
 from settings import NewsSettings
 from .hashtag_storage import HashtagStorage
@@ -14,8 +13,6 @@ def get_trending_news(category=None):
         ValueError: If no articles are found for the given category
         requests.exceptions.RequestException: If there's a network error
     """
-    if category is None:
-        category = NewsSettings.DEFAULT_CATEGORY
 
     print(f"📰 Fetching news for category: {category}")
     from_time = get_zulu_time_minus(NewsSettings.MINUTES_AGO)  # Fetch articles from the last X minutes

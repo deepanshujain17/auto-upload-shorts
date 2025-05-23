@@ -26,8 +26,8 @@ def convert_text_to_speech(text: str,
 
     # If no output filename provided, use default path
     if output_filename is None:
-        os.makedirs("../output/text_audio", exist_ok=True)
-        output_filename = "../output/text_audio/polly_output.mp3"
+        os.makedirs("output/text_audio", exist_ok=True)
+        output_filename = "output/text_audio/polly_output.mp3"
 
     # Generate speech
     audio_output = polly.synthesize_speech(
@@ -39,8 +39,9 @@ def convert_text_to_speech(text: str,
     )
 
     # Save the audio file
-    # with open(output_filename, "wb") as f:
-    #     f.write(audio_output["AudioStream"].read())
+    with open(output_filename, "wb") as f:
+        print("Saving audio to: {}".format(output_filename))
+        f.write(audio_output["AudioStream"].read())
 
-    # print(f"✅ Audio saved as '{output_filename}'")
-    return audio_output
+    print(f"✅ Audio saved as '{output_filename}'")
+    return output_filename

@@ -13,10 +13,9 @@ class NewsSettings:
     CATEGORY_BGM = {
         "sports": "bgm_tararara",
         "entertainment": "bgm_chubina",
-        "nation": "bgm_cheerful"
+        "nation": "bgm_cheerful",
+        "default": "bgm_chubina"
     }
-    DEFAULT_CATEGORY = "nation"
-    DEFAULT_CATEGORY_BGM = "bgm_cheerful"
     LANGUAGE = "en"
     COUNTRY = "in"
     MINUTES_AGO = 1440 # 24-hours Change this to get the latest news #IMP
@@ -45,6 +44,7 @@ class VideoSettings:
     WINDOW_WIDTH = 740
     WINDOW_HEIGHT = 820
     BROWSER_WAIT_TIME = 2  # seconds
+    FPS = 24
 
 class YouTubeSettings:
     DEFAULT_PRIVACY = "public"  # Options: "public", "private", "unlisted"
@@ -120,6 +120,8 @@ class PathSettings:
     # Directory paths
     OUTPUT_DIR = "output"
     ASSETS_VIDEO_DIR = "assets/videos"
+    ASSETS_MUSIC_DIR = "assets/music"
+    ASSETS_IMAGE_DIR = "assets/images"
     NEWS_TEMP_DIR = "news/temp"
     NEWS_CARDS_DIR = "news/news_cards"
 
@@ -135,6 +137,18 @@ class PathSettings:
     @staticmethod
     def get_video_path(bgm_video: str) -> str:
         return f"{PathSettings.ASSETS_VIDEO_DIR}/{bgm_video}.mp4"
+
+    @staticmethod
+    def get_music_path(bg_music: str) -> str:
+        return f"{PathSettings.ASSETS_MUSIC_DIR}/{bg_music}.mp3"
+
+    @staticmethod
+    def get_image_path(bg_image: str) -> str:
+        return f"{PathSettings.ASSETS_IMAGE_DIR}/{bg_image}.png"
+
+    @staticmethod
+    def get_bg_video(category: str) -> str:
+        return f"{PathSettings.OUTPUT_DIR}/bgv_output/bgv_{category}.mp4"
 
     @staticmethod
     def get_final_video(category: str) -> str:
