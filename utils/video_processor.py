@@ -107,9 +107,7 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
             speech_audio = speech_audio.with_volume_scaled(1.0)
             duration = speech_audio.duration
             music_audio = music_audio.with_volume_scaled(0.1).with_duration(duration)
-            print("music_audio duration:", music_audio.duration)
             combined_audio = CompositeAudioClip([speech_audio, music_audio])
-            print("combined_audio duration:", combined_audio.duration)
 
             # Configure video clips
             bg_clip = bg_clip.with_duration(duration).with_fps(VideoSettings.FPS)
@@ -118,12 +116,9 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
                           .resized(height=VideoSettings.IMAGE_HEIGHT)
                           .with_position(("center", bg_clip.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET)))
 
-            print("bg_clip duration:", bg_clip.duration)
-            print("overlay_clip duration:", overlay_clip.duration)
-
             # Combine everything
             final = CompositeVideoClip([bg_clip, overlay_clip]).with_audio(combined_audio)
-            print(f"final duration: {final.duration}")
+
             final.write_videofile(
                 final_video,
                 fps=VideoSettings.FPS,
