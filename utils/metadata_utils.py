@@ -103,6 +103,7 @@ def generate_video_description(
 
     # Publisher (source) URL
     source_url = article.get("url", "")
+    source_name = article.get("source", {}).get("name", "")
 
     # Hashtags from combined tags and extra tags
     combined_tags_str = " ".join(f"#{tag}" for tag in combined_tags)
@@ -111,13 +112,19 @@ def generate_video_description(
     # Build description parts
     description_parts = [article_description]
 
+    # Append source name if available
+    source_name_hashtag = ""
+    if source_name:
+        description_parts.append(f"Source: {source_name}")
+        source_name_hashtag = f"#{source_name}"
+
     # Append source URL if available
     if source_url:
-        description_parts.append(f"Source: {source_url}")
+        description_parts.append(f"{source_url}")
 
     # Append hashtags at the end of the description if available
-    if combined_tags_str or extra_tags_str:
-        description_parts.append(f"{combined_tags_str} {extra_tags_str}".strip())
+    if combined_tags_str or extra_tags_str or source_name_hashtag:
+        description_parts.append(f"{combined_tags_str} {extra_tags_str} {source_name_hashtag}".strip())
 
     # Join all parts into a single description string
     return "\n\n".join(description_parts).strip()

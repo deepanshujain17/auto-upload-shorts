@@ -102,7 +102,9 @@ def create_html_card(article, output_path="temp.html"):
                 <h2>{title}</h2>
                 <p>{description}</p>
                 <div class="meta">
-                  <p><b>Published:</b> {published}</p>
+                  <p>
+                    <b>Source:</b> {source}&emsp; | &emsp;<b>Published:</b> {published}
+                  </p>
                 </div>
               </div>
             </div>
@@ -121,6 +123,7 @@ def create_html_card(article, output_path="temp.html"):
             title=title,
             description=description,
             image_html=image_html,
+            source=source,
             published=published
         )
 
