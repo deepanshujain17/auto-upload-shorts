@@ -116,7 +116,7 @@ def generate_video_description(
     source_name_hashtag = ""
     if source_name:
         description_parts.append(f"Source: {source_name}")
-        source_name_hashtag = f"#{source_name}"
+        source_name_hashtag = f"#{source_name.replace(' ', '')}"
 
     # Append source URL if available
     if source_url:
