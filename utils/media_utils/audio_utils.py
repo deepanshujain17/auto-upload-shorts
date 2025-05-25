@@ -4,37 +4,61 @@ import numpy as np
 from pydub import AudioSegment
 from moviepy.audio.AudioClip import AudioArrayClip
 
-def convert_text_to_speech(text: str,
-                          voice_id: str = "Joanna",
-                          engine: str = "neural",
-                          text_type: str = "text") -> AudioArrayClip:
+def _init_polly_client():
+    """Initialize and return AWS Polly client."""
+    return boto3.client("polly")
+
+def _process_audio_stream(audio_stream: bytes) -> AudioArrayClip:
     """
-    Convert article text to speech using Amazon Polly and return as AudioArrayClip.
+    Process raw audio stream into an AudioArrayClip.
 
     Args:
-        text (str): The text to convert to speech
-        voice_id (str): Amazon Polly voice ID to use (default: Joanna)
-        engine (str): Polly engine type - 'neural' or 'standard' (default: neural)
-        text_type (str): Type of input text - 'text' or 'ssml' (default: text)
+        audio_stream: Raw audio data in bytes
 
     Returns:
-        AudioArrayClip: Audio clip that can be used directly with moviepy
+        AudioArrayClip: Processed audio clip
+    """
+    # Convert audio stream to AudioSegment
+    audio_data = BytesIO(audio_stream)
+    audio_segment = AudioSegment.from_mp3(audio_data)
+
+    # Convert to numpy array and normalize
+    samples = np.array(audio_segment.get_array_of_samples(), dtype=np.float32)
+    samples = samples / (2**15)  # Normalize to [-1, 1]
+
+    # Create and return AudioArrayClip
+    fps = audio_segment.frame_rate
+    return AudioArrayClip(samples.reshape(-1, 1), fps)
+
+def convert_text_to_speech(
+    text: str,
+    voice_id: str = "Joanna",
+    engine: str = "neural",
+    text_type: str = "text"
+) -> AudioArrayClip:
+    """
+    Generate audio from text using AWS Polly.
+
+    Args:
+        text: The text to convert to speech
+        voice_id: AWS Polly voice ID (default: Matthew)
+        engine: AWS Polly engine type (default: neural)
+        text_type: Type of input text - 'text' or 'ssml' (default: text)
+
+    Returns:
+        AudioArrayClip: Generated audio as MoviePy AudioArrayClip
 
     Raises:
-        ValueError: If text is empty or text_type is invalid
-        boto3.exceptions.BotoServerError: If AWS Polly service fails
+        ValueError: If text_type is invalid
+        RuntimeError: If audio generation fails
     """
-    if not text.strip():
-        raise ValueError("Text cannot be empty")
-
     if text_type not in ["text", "ssml"]:
         raise ValueError("text_type must be either 'text' or 'ssml'")
 
     try:
-        # Initialize Polly client
-        polly = boto3.client("polly")
+        polly = _init_polly_client()
 
-        # Generate speech
+        # Generate speech using Polly
         response = polly.synthesize_speech(
             Text=text,
             TextType=text_type,
@@ -43,24 +67,11 @@ def convert_text_to_speech(text: str,
             Engine=engine
         )
 
-        # Convert audio stream to AudioArrayClip
-        audio_data = BytesIO(response["AudioStream"].read())
-        audio_segment = AudioSegment.from_mp3(audio_data)
-
-        # Convert to numpy array
-        samples = np.array(audio_segment.get_array_of_samples())
-
-        # Convert to float32 and normalize
-        samples = samples.astype(np.float32)
-        samples = samples / (2**15)  # Normalize to [-1, 1]
-
-        # Create AudioArrayClip
-        fps = audio_segment.frame_rate
-        audio_clip = AudioArrayClip(samples.reshape(-1, 1), fps)
-
+        audio_clip = _process_audio_stream(response["AudioStream"].read())
         print("✅ Audio generated successfully")
         return audio_clip
 
     except Exception as e:
-        print(f"❌ Error generating audio: {str(e)}")
-        raise
+        error_msg = f"Error generating audio: {str(e)}"
+        print(f"❌ {error_msg}")
+        raise RuntimeError(error_msg) from e
