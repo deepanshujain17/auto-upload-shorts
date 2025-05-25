@@ -12,7 +12,49 @@ from moviepy.audio.AudioClip import AudioArrayClip
 # TODO: content of the article is incomplete, update API or use article.url to scrape full / longer content
 def clean_content(text):
     # Remove trailing pattern like "... [1234 chars]"
-    return re.sub(r'\.\.\.\s*\[\d+\s+chars\]$', '...', text.strip())
+    return re.sub(r'\.\.\.\s*\[\d+\s+chars\]$', '', text.strip())
+
+def escape_ssml_characters(text: str) -> str:
+    """
+    Escapes special characters for safe use in SSML.
+    """
+    replacements = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&apos;"
+    }
+    for char, escape in replacements.items():
+        text = text.replace(char, escape)
+    return text
+
+def add_breaks_to_punctuation(text: str, break_time: int = 1000) -> str:
+    """
+    Replace each punctuation character (.,!?;:) with itself and a break tag,
+    collapsing multiple consecutive punctuations to a single break.
+
+    Args:
+        text (str): Input text
+        break_time (int): Time in milliseconds for the break
+
+    Returns:
+        str: Text with SSML breaks after punctuations
+    """
+    # Match any group of punctuation characters (.,!?;:) one or more times
+    def replacer(match):
+        first_char = match.group(0)[0]  # Keep the first punctuation
+        return f"{first_char} <break time=\"{break_time}ms\"/>"
+
+    # Escape special characters for SSML
+    text = escape_ssml_characters(text)
+
+    # Replace using regex
+    text_with_break = re.sub(r'[.!?;:]+', replacer, text)
+    # Add long break after complete text
+    text_with_break = f"{text_with_break} <break time=\"4000ms\"/>"
+    return re.sub(r'[.!?;:]+', replacer, text_with_break)
+
 
 def generate_article_audio(article: dict) -> AudioArrayClip:
     """Generate audio from article using text-to-speech.
@@ -44,6 +86,8 @@ def generate_article_audio(article: dict) -> AudioArrayClip:
         text_parts.append(clean_content(content))
 
     final_text = ". ".join(text_parts)
+    final_text = add_breaks_to_punctuation(final_text)
+    print(f"Generated text for audio: {final_text}")
 
     ssml_text = f"""
     <speak>
