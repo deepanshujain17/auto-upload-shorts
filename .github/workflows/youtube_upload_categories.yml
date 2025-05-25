@@ -20,16 +20,28 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: '3.12'
 
-      - name: Install dependencies
+      - name: Install FFmpeg
         run: |
-          pip install -r requirements.txt
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
 
 #      - name: Install Hindi (Devanagari) fonts
 #        run: |
 #          sudo apt-get update
 #          sudo apt-get install -y fonts-noto fonts-noto-cjk fonts-noto-color-emoji fonts-noto-unhinted
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Export secret to .env file
         run: echo "GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}" > .env

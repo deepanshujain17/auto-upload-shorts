@@ -1,58 +1,184 @@
-from moviepy.video.io.VideoFileClip import VideoFileClip
+import re
+
 from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
-from settings import VideoSettings, NewsSettings, PathSettings
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.audio.AudioClip import CompositeAudioClip
+from settings import AudioSettings, VideoSettings, NewsSettings, PathSettings
+from utils.media_utils.audio_utils import convert_text_to_speech
+from pathlib import Path
+from moviepy.audio.AudioClip import AudioArrayClip
 
-def create_overlay_video(video_path, image_path, output_path="output_with_overlay.mp4"):
+# TODO: content of the article is incomplete, update API or use article.url to scrape full / longer content
+def clean_content(text):
+    # Remove trailing pattern like "... [1234 chars]"
+    return re.sub(r'\.\.\.\s*\[\d+\s+chars\]$', '', text.strip())
+
+def escape_ssml_characters(text: str) -> str:
     """
-    Create a video with an image overlay.
+    Escapes special characters for safe use in SSML.
+    """
+    replacements = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "\"": "&quot;",
+        "'": "&apos;"
+    }
+    for char, escape in replacements.items():
+        text = text.replace(char, escape)
+    return text
+
+def add_breaks_to_punctuation(text: str, break_time: int = 1000) -> str:
+    """
+    Replace each punctuation character (.,!?;:) with itself and a break tag,
+    collapsing multiple consecutive punctuations to a single break.
 
     Args:
-        video_path (str): Path to the input video file
-        image_path (str): Path to the overlay image file
-        output_path (str): Path where the output video will be saved
+        text (str): Input text
+        break_time (int): Time in milliseconds for the break
 
     Returns:
-        str: Path to the output video file
+        str: Text with SSML breaks after punctuations
     """
-    video = VideoFileClip(video_path)
-    image = (
-        ImageClip(image_path)
-        .with_duration(video.duration)
-        .resized(height=VideoSettings.IMAGE_HEIGHT)
-        .with_position(("center", video.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET))
+    # Match any group of punctuation characters (.,!?;:) one or more times
+    def replacer(match):
+        first_char = match.group(0)[0]  # Keep the first punctuation
+        return f"{first_char} <break time=\"{break_time}ms\"/>"
+
+    # Escape special characters for SSML
+    text = escape_ssml_characters(text)
+
+    # Replace using regex
+    text_with_break = re.sub(r'[.!?;:]+', replacer, text)
+    # Add long break after complete text
+    text_with_break = f"{text_with_break} <break time=\"4000ms\"/>"
+    return text_with_break
+
+
+def generate_article_audio(article: dict) -> AudioArrayClip:
+    """Generate audio from article using text-to-speech.
+
+    Args:
+        article (dict): Article dictionary containing title, description, and content
+
+    Returns:
+        AudioArrayClip: Audio clip generated from article text
+
+    Raises:
+        ValueError: If article has no content or audio generation fails
+    """
+    # Extract and validate article components
+    title = article.get('title', '').strip()
+    description = article.get('description', '').strip()
+    content = article.get('content', '').strip()
+
+    if not any([title, description, content]):
+        raise ValueError("Article must contain at least one of: title, description, or content")
+
+    # Combine text with appropriate pauses and SSML formatting
+    text_parts = []
+    if title:
+        text_parts.append(title) # Can use <emphasize> on title in ssml
+    if description:
+        text_parts.append(description)
+    if content:
+        text_parts.append(clean_content(content))
+
+    final_text = ". ".join(text_parts)
+    final_text = add_breaks_to_punctuation(final_text)
+    print(f"Generated text for audio: {final_text}")
+
+    ssml_text = f"""
+    <speak>
+        <prosody rate="{AudioSettings.PROSODY_RATE}" volume="{AudioSettings.PROSODY_VOLUME}">
+            {final_text}
+        </prosody>
+    </speak>
+    """
+
+    # Get audio clip directly using configured settings
+    return convert_text_to_speech(
+        text=ssml_text,
+        voice_id=AudioSettings.DEFAULT_VOICE_ID,
+        engine=AudioSettings.DEFAULT_ENGINE,
+        text_type=AudioSettings.DEFAULT_TEXT_TYPE
     )
-    final = CompositeVideoClip([video, image])
-    final.write_videofile(
-        output_path,
-        codec=VideoSettings.VIDEO_CODEC,
-        audio_codec=VideoSettings.AUDIO_CODEC,
-        logger=None) # Suppress moviepy logger. logger="bar" (default) providees a progress bar
 
-    print("✅ Overlay video created successfully!")
-    return output_path
+def create_overlay_video_output(category: str, article: dict, overlay_image: str) -> str:
+    """Create a complete video with news overlay and audio.
 
-def create_overlay_video_output(category: str, overlay_image: str) -> str:
-    """
-    Create an overlay video with the news card.
     Args:
         category (str): News category to process
+        article (dict): News article data
         overlay_image (str): Path to the overlay image
 
     Returns:
         str: Path to the final video
+
     Raises:
-        Exception: If video creation fails
+        ValueError: If category is invalid or required assets are missing
+        FileNotFoundError: If required files are missing
     """
     try:
-        bgm_video = NewsSettings.CATEGORY_BGM.get(category, NewsSettings.DEFAULT_CATEGORY_BGM)
-        input_video = PathSettings.get_video_path(bgm_video)
+        print(f"Generating overlay video from article of category: {category}")
+        # Get output path
         final_video = PathSettings.get_final_video(category)
 
-        print(f"🎬 Creating overlay video for {category}...")
-        output = create_overlay_video(input_video, overlay_image, final_video)
-        return output
+        # Get background assets
+        bg_image = PathSettings.get_image_path(
+            NewsSettings.CATEGORY_BG_IMAGE.get(category, NewsSettings.CATEGORY_BG_IMAGE["default"])
+        )
+        bg_music = PathSettings.get_music_path(
+            NewsSettings.CATEGORY_BGM.get(category, NewsSettings.CATEGORY_BGM["default"])
+        )
+        print(f"📸 Using background: {bg_image}")
+        print(f"🎵 Using music: {bg_music}")
+
+        # Generate article audio
+        print("🎙️ Generating audio from article...")
+        speech_audio = generate_article_audio(article)
+        duration = speech_audio.duration
+
+        # Validate input files
+        for path in [bg_image, bg_music, overlay_image]:
+            if not Path(path).is_file():
+                raise FileNotFoundError(f"Required file not found: {path}")
+
+        # Ensure output directory exists
+        Path(final_video).parent.mkdir(parents=True, exist_ok=True)
+
+        # Create video with all components in one step
+        with AudioFileClip(bg_music) as music_audio, \
+             ImageClip(bg_image) as bg_clip, \
+             ImageClip(overlay_image) as overlay_clip:
+
+            # Configure audio
+            speech_audio = speech_audio.with_volume_scaled(AudioSettings.SPEECH_VOLUME)
+            music_audio = music_audio.with_volume_scaled(AudioSettings.BACKGROUND_MUSIC_VOLUME).with_duration(duration)
+            combined_audio = CompositeAudioClip([speech_audio, music_audio])
+
+            # Configure video clips
+            bg_clip = bg_clip.with_duration(duration).with_fps(VideoSettings.FPS)
+            overlay_clip = (overlay_clip
+                          .with_duration(duration)
+                          .resized(height=VideoSettings.IMAGE_HEIGHT)
+                          .with_position(("center", bg_clip.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET)))
+
+            # Combine everything
+            final = CompositeVideoClip([bg_clip, overlay_clip]).with_audio(combined_audio).with_duration(duration)
+            final.write_videofile(
+                final_video,
+                fps=VideoSettings.FPS,
+                codec=VideoSettings.VIDEO_CODEC,
+                audio_codec=VideoSettings.AUDIO_CODEC,
+                logger=None
+            )
+
+        print(f"✅ Overlay Video created successfully: {final_video}")
+        return final_video
+
     except Exception as e:
-        print(f"❌ Error creating overlay video for {category}: {str(e)}")
+        print(f"❌ Error creating video for {category}: {str(e)}")
         raise
 

@@ -11,12 +11,9 @@ class NewsSettings:
     # News API Settings
     CATEGORIES = ["general", "sports", "world", "nation", "business", "technology", "entertainment", "science", "health"]
     CATEGORY_BGM = {
-        "sports": "bgm_tararara",
-        "entertainment": "bgm_chubina",
-        "nation": "bgm_cheerful"
+        "default": "bgm_find"
     }
-    DEFAULT_CATEGORY = "nation"
-    DEFAULT_CATEGORY_BGM = "bgm_cheerful"
+    CATEGORY_BG_IMAGE = {"default": "bg_image"}
     LANGUAGE = "en"
     COUNTRY = "in"
     MINUTES_AGO = 1440 # 24-hours Change this to get the latest news #IMP
@@ -45,6 +42,22 @@ class VideoSettings:
     WINDOW_WIDTH = 740
     WINDOW_HEIGHT = 820
     BROWSER_WAIT_TIME = 2  # seconds
+    FPS = 24
+
+class AudioSettings:
+    NORMALIZATION_FACTOR = 2**15  # Factor to normalize audio samples to [-1, 1]
+    SPEECH_VOLUME = 1.0
+    BACKGROUND_MUSIC_VOLUME = 0.15
+
+    # AWS Polly voice settings
+    DEFAULT_VOICE_ID = "Joanna"
+    DEFAULT_ENGINE = "neural"
+    DEFAULT_TEXT_TYPE = "ssml"
+
+    # SSML settings
+    PROSODY_RATE = "90%"
+    PROSODY_VOLUME = "loud"
+    PROSODY_PITCH = "0%"  # Not being used right now, update ssml template to use it
 
 class YouTubeSettings:
     DEFAULT_PRIVACY = "public"  # Options: "public", "private", "unlisted"
@@ -120,6 +133,8 @@ class PathSettings:
     # Directory paths
     OUTPUT_DIR = "output"
     ASSETS_VIDEO_DIR = "assets/videos"
+    ASSETS_MUSIC_DIR = "assets/music"
+    ASSETS_IMAGE_DIR = "assets/images"
     NEWS_TEMP_DIR = "news/temp"
     NEWS_CARDS_DIR = "news/news_cards"
 
@@ -135,6 +150,14 @@ class PathSettings:
     @staticmethod
     def get_video_path(bgm_video: str) -> str:
         return f"{PathSettings.ASSETS_VIDEO_DIR}/{bgm_video}.mp4"
+
+    @staticmethod
+    def get_music_path(bg_music: str) -> str:
+        return f"{PathSettings.ASSETS_MUSIC_DIR}/{bg_music}.mp3"
+
+    @staticmethod
+    def get_image_path(bg_image: str) -> str:
+        return f"{PathSettings.ASSETS_IMAGE_DIR}/{bg_image}.png"
 
     @staticmethod
     def get_final_video(category: str) -> str:

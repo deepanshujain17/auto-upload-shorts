@@ -27,7 +27,7 @@ def process_categories(yt) -> None:
                 article, overlay_image = generate_news_card(category)
 
                 # 2. Create the overlay video
-                overlay_video_output = create_overlay_video_output(category, overlay_image)
+                overlay_video_output = create_overlay_video_output(category, article, overlay_image)
 
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, category, overlay_video_output, article)
@@ -76,7 +76,7 @@ def process_keywords(yt) -> None:
                 article, overlay_image = generate_news_card(query, is_keyword=True)
 
                 # 2. Create the overlay video
-                overlay_video_output = create_overlay_video_output(query, overlay_image)
+                overlay_video_output = create_overlay_video_output(query, article, overlay_image)
 
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
