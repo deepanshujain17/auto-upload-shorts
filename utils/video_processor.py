@@ -1,3 +1,5 @@
+import re
+
 from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -6,6 +8,11 @@ from settings import AudioSettings, VideoSettings, NewsSettings, PathSettings
 from utils.media_utils.audio_utils import convert_text_to_speech
 from pathlib import Path
 from moviepy.audio.AudioClip import AudioArrayClip
+
+# TODO: content of the article is incomplete, update API or use article.url to scrape full / longer content
+def clean_content(text):
+    # Remove trailing pattern like "... [1234 chars]"
+    return re.sub(r'\.\.\.\s*\[\d+\s+chars\]$', '...', text.strip())
 
 def generate_article_audio(article: dict) -> AudioArrayClip:
     """Generate audio from article using text-to-speech.
@@ -34,7 +41,7 @@ def generate_article_audio(article: dict) -> AudioArrayClip:
     if description:
         text_parts.append(description)
     if content:
-        text_parts.append(content)
+        text_parts.append(clean_content(content))
 
     final_text = ". ".join(text_parts)
 

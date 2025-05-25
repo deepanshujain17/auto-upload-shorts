@@ -68,7 +68,7 @@ def convert_text_to_speech(
         )
 
         audio_clip = _process_audio_stream(response["AudioStream"].read())
-        print("✅ Audio generated successfully")
+        print("🎙️ ✅ Audio generated successfully")
         return audio_clip
 
     except Exception as e:
