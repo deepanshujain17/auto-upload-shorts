@@ -1,4 +1,3 @@
-from moviepy.video.io.VideoFileClip import VideoFileClip
 from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
@@ -6,17 +5,16 @@ from moviepy.audio.AudioClip import CompositeAudioClip
 from settings import VideoSettings, NewsSettings, PathSettings
 from utils.media_utils.audio_utils import convert_text_to_speech
 from pathlib import Path
+from moviepy.audio.AudioClip import AudioArrayClip
 
-
-def generate_article_audio(article: dict, output_path: str = None) -> str:
+def generate_article_audio(article: dict) -> AudioArrayClip:
     """Generate audio from article using text-to-speech.
 
     Args:
         article (dict): Article dictionary containing title, description, and content
-        output_path (str, optional): Custom path to save the audio file
 
     Returns:
-        str: Path to the generated audio file
+        AudioArrayClip: Audio clip generated from article text
 
     Raises:
         ValueError: If article has no content or audio generation fails
@@ -46,14 +44,13 @@ def generate_article_audio(article: dict, output_path: str = None) -> str:
     </speak>
     """
 
+    # Get audio clip directly
     return convert_text_to_speech(
         text=ssml_text,
-        output_filename=output_path,
         voice_id="Joanna",
         engine="neural",
         text_type="ssml"
     )
-
 
 def create_overlay_video_output(category: str, article: dict, overlay_image: str) -> str:
     """Create a complete video with news overlay and audio.
@@ -85,11 +82,12 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
         print(f"🎵 Using music: {bg_music}")
 
         # Generate article audio
-        article_audio = generate_article_audio(article)
-        print(f"🎙️ Generated audio: {article_audio}")
+        print("🎙️ Generating audio from article...")
+        speech_audio = generate_article_audio(article)
+        duration = speech_audio.duration
 
-        # Validate all required files exist
-        for path in [bg_image, bg_music, article_audio, overlay_image]:
+        # Validate input files
+        for path in [bg_image, bg_music, overlay_image]:
             if not Path(path).is_file():
                 raise FileNotFoundError(f"Required file not found: {path}")
 
@@ -97,15 +95,12 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
         Path(final_video).parent.mkdir(parents=True, exist_ok=True)
 
         # Create video with all components in one step
-        with AudioFileClip(article_audio) as speech_audio, \
-             AudioFileClip(bg_music) as music_audio, \
+        with AudioFileClip(bg_music) as music_audio, \
              ImageClip(bg_image) as bg_clip, \
              ImageClip(overlay_image) as overlay_clip:
 
-            print("speech_audio duration:", speech_audio.duration)
             # Configure audio
             speech_audio = speech_audio.with_volume_scaled(1.0)
-            duration = speech_audio.duration
             music_audio = music_audio.with_volume_scaled(0.1).with_duration(duration)
             combined_audio = CompositeAudioClip([speech_audio, music_audio])
 
@@ -117,8 +112,7 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
                           .with_position(("center", bg_clip.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET)))
 
             # Combine everything
-            final = CompositeVideoClip([bg_clip, overlay_clip]).with_audio(combined_audio)
-
+            final = CompositeVideoClip([bg_clip, overlay_clip]).with_audio(combined_audio).with_duration(duration)
             final.write_videofile(
                 final_video,
                 fps=VideoSettings.FPS,
