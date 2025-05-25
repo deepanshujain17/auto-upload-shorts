@@ -53,7 +53,7 @@ def add_breaks_to_punctuation(text: str, break_time: int = 1000) -> str:
     text_with_break = re.sub(r'[.!?;:]+', replacer, text)
     # Add long break after complete text
     text_with_break = f"{text_with_break} <break time=\"4000ms\"/>"
-    return re.sub(r'[.!?;:]+', replacer, text_with_break)
+    return text_with_break
 
 
 def generate_article_audio(article: dict) -> AudioArrayClip:
