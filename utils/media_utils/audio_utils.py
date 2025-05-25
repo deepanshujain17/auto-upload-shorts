@@ -24,7 +24,7 @@ def _process_audio_stream(audio_stream: bytes) -> AudioArrayClip:
 
     # Convert to numpy array and normalize
     samples = np.array(audio_segment.get_array_of_samples(), dtype=np.float32)
-    samples = samples / (2**15)  # Normalize to [-1, 1]
+    samples = samples / (2**15)  # Normalize Polly output to range [-1, 1]
 
     # Create and return AudioArrayClip
     fps = audio_segment.frame_rate
@@ -34,7 +34,7 @@ def convert_text_to_speech(
     text: str,
     voice_id: str = "Joanna",
     engine: str = "neural",
-    text_type: str = "text"
+    text_type: str = "ssml"
 ) -> AudioArrayClip:
     """
     Generate audio from text using AWS Polly.

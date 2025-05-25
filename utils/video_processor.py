@@ -2,7 +2,7 @@ from moviepy.video.VideoClip import ImageClip
 from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.audio.AudioClip import CompositeAudioClip
-from settings import VideoSettings, NewsSettings, PathSettings
+from settings import AudioSettings, VideoSettings, NewsSettings, PathSettings
 from utils.media_utils.audio_utils import convert_text_to_speech
 from pathlib import Path
 from moviepy.audio.AudioClip import AudioArrayClip
@@ -30,26 +30,28 @@ def generate_article_audio(article: dict) -> AudioArrayClip:
     # Combine text with appropriate pauses and SSML formatting
     text_parts = []
     if title:
-        text_parts.append(title)
+        text_parts.append(title) # Can use <emphasize> on title in ssml
     if description:
         text_parts.append(description)
     if content:
         text_parts.append(content)
 
+    final_text = ". ".join(text_parts)
+
     ssml_text = f"""
     <speak>
-        <prosody rate="95%" volume="loud">
-            {". ".join(text_parts)}
+        <prosody rate={AudioSettings.PROSODY_RATE} volume={AudioSettings.PROSODY_VOLUME}>
+            {final_text}
         </prosody>
     </speak>
     """
 
-    # Get audio clip directly
+    # Get audio clip directly using configured settings
     return convert_text_to_speech(
         text=ssml_text,
-        voice_id="Joanna",
-        engine="neural",
-        text_type="ssml"
+        voice_id=AudioSettings.DEFAULT_VOICE_ID,
+        engine=AudioSettings.DEFAULT_ENGINE,
+        text_type=AudioSettings.DEFAULT_TEXT_TYPE
     )
 
 def create_overlay_video_output(category: str, article: dict, overlay_image: str) -> str:
@@ -100,8 +102,8 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
              ImageClip(overlay_image) as overlay_clip:
 
             # Configure audio
-            speech_audio = speech_audio.with_volume_scaled(1.0)
-            music_audio = music_audio.with_volume_scaled(0.1).with_duration(duration)
+            speech_audio = speech_audio.with_volume_scaled(AudioSettings.SPEECH_VOLUME)
+            music_audio = music_audio.with_volume_scaled(AudioSettings.BACKGROUND_MUSIC_VOLUME).with_duration(duration)
             combined_audio = CompositeAudioClip([speech_audio, music_audio])
 
             # Configure video clips

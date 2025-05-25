@@ -44,6 +44,21 @@ class VideoSettings:
     BROWSER_WAIT_TIME = 2  # seconds
     FPS = 24
 
+class AudioSettings:
+    NORMALIZATION_FACTOR = 2**15  # Factor to normalize audio samples to [-1, 1]
+    SPEECH_VOLUME = 1.0
+    BACKGROUND_MUSIC_VOLUME = 0.05
+
+    # AWS Polly voice settings
+    DEFAULT_VOICE_ID = "Joanna"
+    DEFAULT_ENGINE = "neural"
+    DEFAULT_TEXT_TYPE = "ssml"
+
+    # SSML settings
+    PROSODY_RATE = "95%"
+    PROSODY_VOLUME = "loud"
+    PROSODY_PITCH = "0%"  # No pitch change, can be adjusted if needed
+
 class YouTubeSettings:
     DEFAULT_PRIVACY = "public"  # Options: "public", "private", "unlisted"
     ARTICLE_MAX_TAGS = 3
