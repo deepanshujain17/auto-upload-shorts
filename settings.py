@@ -11,7 +11,7 @@ class NewsSettings:
     # News API Settings
     CATEGORIES = ["general", "sports", "world", "nation", "business", "technology", "entertainment", "science", "health"]
     CATEGORY_BGM = {
-        "default": "bgm_chubina"
+        "default": "bgm_find"
     }
     CATEGORY_BG_IMAGE = {"default": "bg_image"}
     LANGUAGE = "en"
@@ -47,7 +47,7 @@ class VideoSettings:
 class AudioSettings:
     NORMALIZATION_FACTOR = 2**15  # Factor to normalize audio samples to [-1, 1]
     SPEECH_VOLUME = 1.0
-    BACKGROUND_MUSIC_VOLUME = 0.05
+    BACKGROUND_MUSIC_VOLUME = 0.15
 
     # AWS Polly voice settings
     DEFAULT_VOICE_ID = "Joanna"
@@ -55,9 +55,9 @@ class AudioSettings:
     DEFAULT_TEXT_TYPE = "ssml"
 
     # SSML settings
-    PROSODY_RATE = "95%"
+    PROSODY_RATE = "90%"
     PROSODY_VOLUME = "loud"
-    PROSODY_PITCH = "0%"  # No pitch change, can be adjusted if needed
+    PROSODY_PITCH = "0%"  # Not being used right now, update ssml template to use it
 
 class YouTubeSettings:
     DEFAULT_PRIVACY = "public"  # Options: "public", "private", "unlisted"
