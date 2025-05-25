@@ -40,7 +40,7 @@ def generate_article_audio(article: dict) -> AudioArrayClip:
 
     ssml_text = f"""
     <speak>
-        <prosody rate={AudioSettings.PROSODY_RATE} volume={AudioSettings.PROSODY_VOLUME}>
+        <prosody rate="{AudioSettings.PROSODY_RATE}" volume="{AudioSettings.PROSODY_VOLUME}">
             {final_text}
         </prosody>
     </speak>
@@ -70,6 +70,7 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
         FileNotFoundError: If required files are missing
     """
     try:
+        print(f"Generating overlay video from article of category: {category}")
         # Get output path
         final_video = PathSettings.get_final_video(category)
 
@@ -123,7 +124,7 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
                 logger=None
             )
 
-        print(f"✅ Video created successfully: {final_video}")
+        print(f"✅ Overlay Video created successfully: {final_video}")
         return final_video
 
     except Exception as e:
