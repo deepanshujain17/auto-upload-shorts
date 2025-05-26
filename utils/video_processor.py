@@ -50,7 +50,7 @@ def add_breaks_to_punctuation(text: str, break_time: int = 1000) -> str:
     text = escape_ssml_characters(text)
 
     # Replace using regex
-    text_with_break = re.sub(r'[.!?;:]+', replacer, text)
+    text_with_break = re.sub(r'[.!?:]+', replacer, text)
     # Add long break after complete text
     text_with_break = f"{text_with_break} <break time=\"4000ms\"/>"
     return text_with_break
