@@ -3,8 +3,8 @@ name: Daily YouTube Upload - Categories
 on:
   # 12:30 UTC = 18:00 IST
   schedule:
-    # Weekdays: 8 AM, 10 AM, 1 PM, 6 PM IST
-    - cron: '30 2,4,7,12 * * 1-5'
+    # Weekdays: 7 AM, 9 AM, 1 PM, 6 PM IST
+    - cron: '30 1,3,7,12 * * 1-5'
     # Weekends: 8 AM, 10 AM, 3 PM, 8 PM IST
     - cron: '30 2,4,9,14 * * 6,0'
   workflow_dispatch:  # Allow manual runs too
