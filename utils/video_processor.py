@@ -5,8 +5,8 @@ from pathlib import Path
 from settings import VideoSettings, NewsSettings, PathSettings
 from utils.media_utils.audio_composer import AudioComposer
 from utils.media_utils.video_composer import VideoComposer
-from utils.media_utils.html_utils import create_html_card
-from utils.media_utils.browser_utils import render_card_to_image
+from utils.web_utils.html_utils import create_html_card
+from utils.web_utils.browser_utils import render_card_to_image
 
 
 def generate_overlay_image(category: str, article: dict) -> str:

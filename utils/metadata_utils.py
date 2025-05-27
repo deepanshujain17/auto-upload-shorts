@@ -15,7 +15,7 @@ def generate_video_tags(
     Args:
         article: The news article data
         category: News category
-        hashtag: Optional hashtag to include
+        hashtag: Optional hashtag to include, useful for trending search queries
 
     Returns:
         Tuple containing:
