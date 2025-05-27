@@ -23,11 +23,11 @@ def process_categories(yt) -> None:
             try:
                 print(f"\n📌 Processing category: {category}")
 
-                # 1. Generate the news card image and get article data
-                article, overlay_image = generate_news_card(category)
+                # 1. Fetch the news article data
+                article = generate_news_card(category)
 
-                # 2. Create the overlay video
-                overlay_video_output = create_overlay_video_output(category, article, overlay_image)
+                # 2. Create the overlay video (includes HTML and image generation)
+                overlay_video_output = create_overlay_video_output(category, article)
 
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, category, overlay_video_output, article)
@@ -73,10 +73,10 @@ def process_keywords(yt) -> None:
                 query = normalize_hashtag(hashtag)
 
                 # 1. Generate news card with is_keyword=True
-                article, overlay_image = generate_news_card(query, is_keyword=True)
+                article = generate_news_card(query, is_keyword=True)
 
-                # 2. Create the overlay video
-                overlay_video_output = create_overlay_video_output(query, article, overlay_image)
+                # 2. Create the overlay video (includes HTML and image generation)
+                overlay_video_output = create_overlay_video_output(query, article)
 
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
