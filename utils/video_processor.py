@@ -19,13 +19,12 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
         str: Path to the final video
 
     Raises:
-        ValueError: If category is invalid or required assets are missing
         FileNotFoundError: If required files are missing
     """
     try:
         print(f"Generating overlay video from article of category: {category}")
         # Get output path
-        final_video = PathSettings.get_final_video(category)
+        output_video_path = PathSettings.get_final_video(category)
 
         # Get background assets
         bg_image = PathSettings.get_image_path(
@@ -48,7 +47,7 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
                 raise FileNotFoundError(f"Required file not found: {path}")
 
         # Ensure output directory exists
-        Path(final_video).parent.mkdir(parents=True, exist_ok=True)
+        Path(output_video_path).parent.mkdir(parents=True, exist_ok=True)
 
         # Create video with all components in one step
         with AudioFileClip(bg_music) as music_audio, \
@@ -61,20 +60,20 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
             )
             print("🎶 ✅ Audio generated and combined successfully")
 
-            final = VideoComposer.create_composite_video(
+            composite_video = VideoComposer.create_composite_video(
                 bg_clip, overlay_clip, combined_audio, duration
             )
 
-            final.write_videofile(
-                final_video,
+            composite_video.write_videofile(
+                output_video_path,
                 fps=VideoSettings.FPS,
                 codec=VideoSettings.VIDEO_CODEC,
                 audio_codec=VideoSettings.AUDIO_CODEC,
                 logger=None
             )
 
-        print(f"✅ Overlay Video created successfully: {final_video}")
-        return final_video
+        print(f"✅ Overlay Video created successfully: {output_video_path}")
+        return output_video_path
 
     except Exception as e:
         print(f"❌ Error creating video for {category}: {str(e)}")
