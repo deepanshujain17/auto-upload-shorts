@@ -1,6 +1,8 @@
-import requests
 import re
+
+import requests
 from bs4 import BeautifulSoup
+
 from settings import TrendingSettings
 
 

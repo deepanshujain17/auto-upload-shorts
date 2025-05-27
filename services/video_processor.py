@@ -1,12 +1,13 @@
-from moviepy.video.VideoClip import ImageClip
-from moviepy.audio.io.AudioFileClip import AudioFileClip
 from pathlib import Path
 
-from settings import VideoSettings, NewsSettings, PathSettings
+from moviepy.audio.io.AudioFileClip import AudioFileClip
+from moviepy.video.VideoClip import ImageClip
+
+from settings import NewsSettings, PathSettings, VideoSettings
 from utils.media.audio_composer import AudioComposer
 from utils.media.video_composer import VideoComposer
-from utils.web.html_utils import create_html_card
 from utils.web.browser_utils import render_card_to_image
+from utils.web.html_utils import create_html_card
 
 
 def _generate_overlay_image(category: str, article: dict) -> str:

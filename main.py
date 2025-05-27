@@ -1,13 +1,15 @@
+# Standard library imports
 import os
 import sys
 
-from services.video_processor import create_overlay_video_output
-from services.shorts_uploader import upload_youtube_shorts
-from utils.commons import normalize_hashtag
-from services.fetch_news import fetch_news_article
-from services.auth import authenticate_youtube
+# Local imports
 from core.trends.trends_api_client import get_trending_hashtags
+from services.auth import authenticate_youtube
+from services.fetch_news import fetch_news_article
+from services.shorts_uploader import upload_youtube_shorts
+from services.video_processor import create_overlay_video_output
 from settings import NewsSettings, PathSettings, TrendingSettings
+from utils.commons import normalize_hashtag
 
 
 def process_categories(yt) -> None:
@@ -107,7 +109,7 @@ def main() -> None:
 
         # Authenticate to YouTube
         print("🔐 Authenticating to YouTube...")
-        yt = None
+        yt = authenticate_youtube()
 
         # Run the specified process
         if process_type in ["categories", "all"]:
