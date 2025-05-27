@@ -1,109 +1,11 @@
-import re
-
 from moviepy.video.VideoClip import ImageClip
-from moviepy.video.compositing.CompositeVideoClip import CompositeVideoClip
 from moviepy.audio.io.AudioFileClip import AudioFileClip
-from moviepy.audio.AudioClip import CompositeAudioClip
-from settings import AudioSettings, VideoSettings, NewsSettings, PathSettings
-from utils.media_utils.audio_utils import convert_text_to_speech
 from pathlib import Path
-from moviepy.audio.AudioClip import AudioArrayClip
 
-# TODO: content of the article is incomplete, update API or use article.url to scrape full / longer content
-def clean_content(text):
-    # Remove trailing pattern like "... [1234 chars]"
-    return re.sub(r'\.\.\.\s*\[\d+\s+chars\]$', '', text.strip())
+from settings import VideoSettings, NewsSettings, PathSettings
+from utils.media_utils.audio_composer import AudioComposer
+from utils.media_utils.video_composer import VideoComposer
 
-def escape_ssml_characters(text: str) -> str:
-    """
-    Escapes special characters for safe use in SSML.
-    """
-    replacements = {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        "\"": "&quot;",
-        "'": "&apos;"
-    }
-    for char, escape in replacements.items():
-        text = text.replace(char, escape)
-    return text
-
-def add_breaks_to_punctuation(text: str, break_time: int = 1000) -> str:
-    """
-    Replace each punctuation character (.,!?;:) with itself and a break tag,
-    collapsing multiple consecutive punctuations to a single break.
-
-    Args:
-        text (str): Input text
-        break_time (int): Time in milliseconds for the break
-
-    Returns:
-        str: Text with SSML breaks after punctuations
-    """
-    # Match any group of punctuation characters (.,!?;:) one or more times
-    def replacer(match):
-        first_char = match.group(0)[0]  # Keep the first punctuation
-        return f"{first_char} <break time=\"{break_time}ms\"/>"
-
-    # Escape special characters for SSML
-    text = escape_ssml_characters(text)
-
-    # Replace using regex
-    text_with_break = re.sub(r'[.!?:]+', replacer, text)
-    # Add long break after complete text
-    text_with_break = f"{text_with_break} <break time=\"4000ms\"/>"
-    return text_with_break
-
-
-def generate_article_audio(article: dict) -> AudioArrayClip:
-    """Generate audio from article using text-to-speech.
-
-    Args:
-        article (dict): Article dictionary containing title, description, and content
-
-    Returns:
-        AudioArrayClip: Audio clip generated from article text
-
-    Raises:
-        ValueError: If article has no content or audio generation fails
-    """
-    # Extract and validate article components
-    title = article.get('title', '').strip()
-    description = article.get('description', '').strip()
-    content = article.get('content', '').strip()
-
-    if not any([title, description, content]):
-        raise ValueError("Article must contain at least one of: title, description, or content")
-
-    # Combine text with appropriate pauses and SSML formatting
-    text_parts = []
-    if title:
-        text_parts.append(title) # Can use <emphasize> on title in ssml
-    if description:
-        text_parts.append(description)
-    if content:
-        text_parts.append(clean_content(content))
-
-    final_text = ". ".join(text_parts)
-    final_text = add_breaks_to_punctuation(final_text)
-    print(f"Generated text for audio: {final_text}")
-
-    ssml_text = f"""
-    <speak>
-        <prosody rate="{AudioSettings.PROSODY_RATE}" volume="{AudioSettings.PROSODY_VOLUME}">
-            {final_text}
-        </prosody>
-    </speak>
-    """
-
-    # Get audio clip directly using configured settings
-    return convert_text_to_speech(
-        text=ssml_text,
-        voice_id=AudioSettings.DEFAULT_VOICE_ID,
-        engine=AudioSettings.DEFAULT_ENGINE,
-        text_type=AudioSettings.DEFAULT_TEXT_TYPE
-    )
 
 def create_overlay_video_output(category: str, article: dict, overlay_image: str) -> str:
     """Create a complete video with news overlay and audio.
@@ -137,7 +39,7 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
 
         # Generate article audio
         print("🎙️ Generating audio from article...")
-        speech_audio = generate_article_audio(article)
+        speech_audio = AudioComposer.generate_article_audio(article)
         duration = speech_audio.duration
 
         # Validate input files
@@ -153,20 +55,16 @@ def create_overlay_video_output(category: str, article: dict, overlay_image: str
              ImageClip(bg_image) as bg_clip, \
              ImageClip(overlay_image) as overlay_clip:
 
-            # Configure audio
-            speech_audio = speech_audio.with_volume_scaled(AudioSettings.SPEECH_VOLUME)
-            music_audio = music_audio.with_volume_scaled(AudioSettings.BACKGROUND_MUSIC_VOLUME).with_duration(duration)
-            combined_audio = CompositeAudioClip([speech_audio, music_audio])
+            # Configure & Create composite audio
+            combined_audio = AudioComposer.create_composite_audio(
+                speech_audio, music_audio, duration
+            )
+            print("🎶 ✅ Audio generated and combined successfully")
 
-            # Configure video clips
-            bg_clip = bg_clip.with_duration(duration).with_fps(VideoSettings.FPS)
-            overlay_clip = (overlay_clip
-                          .with_duration(duration)
-                          .resized(height=VideoSettings.IMAGE_HEIGHT)
-                          .with_position(("center", bg_clip.h // 2 - VideoSettings.IMAGE_VERTICAL_OFFSET)))
+            final = VideoComposer.create_composite_video(
+                bg_clip, overlay_clip, combined_audio, duration
+            )
 
-            # Combine everything
-            final = CompositeVideoClip([bg_clip, overlay_clip]).with_audio(combined_audio).with_duration(duration)
             final.write_videofile(
                 final_video,
                 fps=VideoSettings.FPS,
