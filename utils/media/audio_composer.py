@@ -1,8 +1,8 @@
 from typing import Dict
 from moviepy.audio.AudioClip import CompositeAudioClip, AudioArrayClip
 from settings import AudioSettings
-from utils.media_utils.audio_utils import convert_text_to_speech
-from utils.media_utils.text_processor import TextProcessor
+from utils.media.audio_utils import convert_text_to_speech
+from utils.media.ssml_text_generator import TextProcessor
 
 
 class AudioComposer:

@@ -3,13 +3,13 @@ from moviepy.audio.io.AudioFileClip import AudioFileClip
 from pathlib import Path
 
 from settings import VideoSettings, NewsSettings, PathSettings
-from utils.media_utils.audio_composer import AudioComposer
-from utils.media_utils.video_composer import VideoComposer
-from utils.web_utils.html_utils import create_html_card
-from utils.web_utils.browser_utils import render_card_to_image
+from utils.media.audio_composer import AudioComposer
+from utils.media.video_composer import VideoComposer
+from utils.web.html_utils import create_html_card
+from utils.web.browser_utils import render_card_to_image
 
 
-def generate_overlay_image(category: str, article: dict) -> str:
+def _generate_overlay_image(category: str, article: dict) -> str:
     """Generate the news card overlay image.
 
     Args:
@@ -58,7 +58,7 @@ def create_overlay_video_output(category: str, article: dict) -> str:
     """
     try:
         # Generate the overlay image
-        overlay_image = generate_overlay_image(category, article)
+        overlay_image = _generate_overlay_image(category, article)
 
         # Get output path
         output_video_path = PathSettings.get_final_video(category)
@@ -70,8 +70,8 @@ def create_overlay_video_output(category: str, article: dict) -> str:
         bg_music = PathSettings.get_music_path(
             NewsSettings.CATEGORY_BGM.get(category, NewsSettings.CATEGORY_BGM["default"])
         )
-        print(f"📸 Using background: {bg_image}")
-        print(f"🎵 Using music: {bg_music}")
+        print(f"📸 Using background image: {bg_image}")
+        print(f"🎵 Using background music: {bg_music}")
 
         # Generate article audio
         print("🎙️ Generating audio from article...")
@@ -95,7 +95,7 @@ def create_overlay_video_output(category: str, article: dict) -> str:
             combined_audio = AudioComposer.create_composite_audio(
                 speech_audio, music_audio, duration
             )
-            print("🎶 ✅ Audio generated and combined successfully")
+            print("✅ Audio generated and combined successfully")
 
             composite_video = VideoComposer.create_composite_video(
                 bg_clip, overlay_clip, combined_audio, duration

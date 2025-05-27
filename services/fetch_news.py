@@ -1,7 +1,7 @@
-from news.utils.news_api_client import get_trending_news, get_keyword_news
+from core.news.news_api_client import get_category_news, get_keyword_news
 
 
-def generate_news_card(identifier: str, is_keyword: bool = False) -> dict:
+def fetch_news_article(identifier: str, is_keyword: bool = False) -> dict:
     """
     Fetch news article for the given category or keyword.
     Args:
@@ -22,10 +22,12 @@ def generate_news_card(identifier: str, is_keyword: bool = False) -> dict:
             if not article:
                 raise ValueError(f"No article found for keyword: {identifier}")
         else:
-            article = get_trending_news(identifier)  # identifier is category in this case
+            article = get_category_news(identifier)  # identifier is category in this case
             print(f"Trending Category Article | {identifier}:\n{article}")
 
         return article
     except Exception as e:
-        raise
+        error_msg = f"Error fetching news article for {identifier}: {str(e)}"
+        print(f"❌ {error_msg}")
+        raise Exception(error_msg)
 

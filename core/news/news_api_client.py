@@ -1,11 +1,11 @@
 import requests
 import time
-from .commons import get_zulu_time_minus
+from utils.commons import get_zulu_time_minus
 from settings import NewsSettings
-from .hashtag_storage import HashtagStorage
+from core.news.hashtag_storage import HashtagStorage
 
 
-def get_trending_news(category=None):
+def get_category_news(category=None):
     """
     Fetch news articles from GNews API for given categories
 

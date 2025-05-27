@@ -1,12 +1,12 @@
 import os
 import sys
 
-from utils.video_processor import create_overlay_video_output
-from utils.auth import authenticate_youtube
-from utils.shorts_uploader import upload_youtube_shorts
-from news.utils.commons import normalize_hashtag
-from news.news_fetcher import generate_news_card
-from news.utils.trending_utils import get_trending_hashtags
+from services.video_processor import create_overlay_video_output
+from services.shorts_uploader import upload_youtube_shorts
+from utils.commons import normalize_hashtag
+from services.fetch_news import fetch_news_article
+from services.auth import authenticate_youtube
+from core.trends.trends_api_client import get_trending_hashtags
 from settings import NewsSettings, PathSettings, TrendingSettings
 
 
@@ -24,7 +24,7 @@ def process_categories(yt) -> None:
                 print(f"\n📌 Processing category: {category}")
 
                 # 1. Fetch the news article data
-                article = generate_news_card(category)
+                article = fetch_news_article(category)
 
                 # 2. Create the overlay video (includes HTML and image generation)
                 overlay_video_output = create_overlay_video_output(category, article)
@@ -73,7 +73,7 @@ def process_keywords(yt) -> None:
                 query = normalize_hashtag(hashtag)
 
                 # 1. Generate news card with is_keyword=True
-                article = generate_news_card(query, is_keyword=True)
+                article = fetch_news_article(query, is_keyword=True)
 
                 # 2. Create the overlay video (includes HTML and image generation)
                 overlay_video_output = create_overlay_video_output(query, article)
@@ -107,7 +107,7 @@ def main() -> None:
 
         # Authenticate to YouTube
         print("🔐 Authenticating to YouTube...")
-        yt = authenticate_youtube()
+        yt = None
 
         # Run the specified process
         if process_type in ["categories", "all"]:

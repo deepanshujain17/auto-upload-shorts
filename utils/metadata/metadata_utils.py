@@ -1,6 +1,6 @@
 from typing import List, Optional, Tuple
 
-from news.utils.tag_utils import generate_tags_with_frequency
+from utils.metadata.tag_utils import generate_tags_with_frequency
 from settings import YouTubeSettings
 
 
