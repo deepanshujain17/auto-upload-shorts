@@ -1,6 +1,6 @@
 import os
 from dotenv import load_dotenv
-from archive_scripts.script_newsapi import NewsFetcher
+from others.archive_scripts.script_newsapi import NewsFetcher
 
 def test_news_fetcher():
     # Load environment variables

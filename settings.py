@@ -135,8 +135,8 @@ class PathSettings:
     ASSETS_VIDEO_DIR = "assets/videos"
     ASSETS_MUSIC_DIR = "assets/music"
     ASSETS_IMAGE_DIR = "assets/images"
-    HTML_CARD_DIR = "intermediate/html_card"
-    NEWS_CARDS_DIR = "intermediate/news_card"
+    HTML_CARD_DIR = "output/intermediate/html_card"
+    NEWS_CARDS_DIR = "output/intermediate/news_card"
 
     # File paths
     @staticmethod
