@@ -1,5 +1,7 @@
 from typing import Dict
-from moviepy.audio.AudioClip import CompositeAudioClip, AudioArrayClip
+
+from moviepy.audio.AudioClip import AudioArrayClip, CompositeAudioClip
+
 from settings import AudioSettings
 from utils.media.audio_utils import convert_text_to_speech
 from utils.media.ssml_text_generator import TextProcessor

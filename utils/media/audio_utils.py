@@ -1,8 +1,9 @@
-import boto3
 from io import BytesIO
+
+import boto3
 import numpy as np
-from pydub import AudioSegment
 from moviepy.audio.AudioClip import AudioArrayClip
+from pydub import AudioSegment
 
 def _init_polly_client():
     """Initialize and return AWS Polly client."""

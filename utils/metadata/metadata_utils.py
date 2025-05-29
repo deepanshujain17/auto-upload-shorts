@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 
-from utils.metadata.tag_utils import generate_tags_with_frequency
 from settings import YouTubeSettings
+from utils.metadata.tag_utils import generate_tags_with_frequency
 
 
 def generate_video_tags(
