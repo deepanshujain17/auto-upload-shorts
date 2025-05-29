@@ -83,48 +83,49 @@ process_type options:
     keywords   - Process only trending keywords/hashtags
 ```
 
+## Code Organization
+
+- `main.py` - Orchestrates the entire workflow by coordinating between services, utilizing core APIs, and common utilities
+- `core/` - Contains API client implementations for external services (News API, Trends API, YouTube API)
+- `services/` - Implements high-level business logic for authentication, news fetching, video processing, and YouTube uploads
+- `utils/` - Houses reusable utilities for media processing, metadata handling, and web operations
+
 ## Project Structure
 
 ```
 .
-├── main.py                # Main application entry point for both category and keyword processing
-├── requirements.txt       # Python dependencies
+├── main.py               # Main application entry point
+├── requirements.txt      # Python dependencies
 ├── settings.py           # Application settings and configurations
 ├── Pipfile               # Pipenv dependency management
-├── .github/workflows/    # GitHub Actions workflow configurations
-│   ├── youtube_upload.yml        # Categories workflow
-│   └── youtube_upload_keywords.yml # Keywords workflow
-├── archive_scripts/      # Archive of previous implementations
-│   ├── script_gnews.py   # Old GNews implementation
-│   ├── script_newsapi.py # Old NewsAPI implementation
-│   └── test_newsapi.py   # Tests for NewsAPI
-├── assets/
-│   ├── images/          # Static images for overlay
-│   └── videos/          # Background videos and BGM options
-│       ├── bgm_cheerful.mp4     # Cheerful background music
-│       ├── bgm_chubina.mp4      # Alternative background music
-│       ├── bgm_tararara.mp4     # Alternative background music
-│       └── video1.mp4           # Base video for overlays
-├── news/                 # News processing module
-│   ├── news_fetcher.py  # Main news fetching implementation
-│   ├── test.ipynb       # Testing notebook for news features
-│   ├── news_cards/      # Generated news card images
-│   ├── temp/            # Temporary HTML templates for news cards
-│   └── utils/           # News processing utilities
-│       ├── browser_utils.py   # Browser automation utilities
-│       ├── commons.py         # Common utility functions
-│       ├── html_utils.py      # HTML template handling
-│       ├── news_utils.py      # News processing functions
-│       ├── tag_utils.py       # Hashtag and tag processing
-│       └── trending_utils.py  # Trending topics handling
-├── others/              # Authentication and credentials
+├── assets/               # Static assets
+│   ├── images/            # Static images for overlay
+│   ├── music/             # Background music files
+│   └── videos/            # Background videos
+├── core/                 # Core functionality modules
+│   ├── news/              # News API integration
+│   ├── trends/            # Trending topics API integration
+│   └── youtube/           # YouTube API integration
+├── others/               # Authentication and configuration
+│   └── archive_scripts/         # Legacy implementation scripts
 │   ├── client_secrets.json      # YouTube API credentials
 │   ├── client_secrets.json.b64  # Base64 encoded credentials
-│   ├── token.pkl              # YouTube authentication token
-│   └── token.b64             # Base64 encoded token
-├── output/              # Generated video outputs with overlays
-└── utils/               # Core utility functions
-    ├── auth.py         # YouTube authentication handling
-    ├── upload.py       # YouTube upload functionality
-    └── video_processor.py # Video processing and overlay generation
+│   ├── token.pkl                # YouTube authentication token
+│   └── token.b64                # Base64 encoded token
+├── output/              # Generated outputs
+│   ├── history/           # Historical data storage
+│   ├── intermediate/      # Temporary processing files
+│   └── text_audio/        # Generated audio files
+├── playground/          # Testing and development
+│   └── outputs/           # Test output files
+├── services/             # Core service implementations
+│   ├── auth.py               # Authentication service
+│   ├── fetch_news.py         # News fetching service
+│   ├── shorts_uploader.py    # YouTube upload service
+│   └── video_processor.py    # Video processing service
+└── utils/              # Utility modules
+    ├── commons.py         # Common utility functions
+    ├── media/             # Media processing utilities
+    ├── metadata/          # Metadata and tagging utilities
+    └── web/               # Web-related utilities
 ```
