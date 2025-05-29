@@ -1,7 +1,7 @@
 from typing import List, Optional, Tuple
 
-from news.utils.tag_utils import generate_tags_with_frequency
 from settings import YouTubeSettings
+from utils.metadata.tag_utils import generate_tags_with_frequency
 
 
 def generate_video_tags(
@@ -15,7 +15,7 @@ def generate_video_tags(
     Args:
         article: The news article data
         category: News category
-        hashtag: Optional hashtag to include
+        hashtag: Optional hashtag to include, useful for trending search queries
 
     Returns:
         Tuple containing:

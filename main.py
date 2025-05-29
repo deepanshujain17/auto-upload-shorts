@@ -1,13 +1,15 @@
+# Standard library imports
 import os
 import sys
 
-from utils.video_processor import create_overlay_video_output
-from utils.auth import authenticate_youtube
-from utils.shorts_uploader import upload_youtube_shorts
-from news.utils.commons import normalize_hashtag
-from news.news_fetcher import generate_news_card
-from news.utils.trending_utils import get_trending_hashtags
+# Local imports
+from core.trends.trends_api_client import get_trending_hashtags
+from services.auth import authenticate_youtube
+from services.fetch_news import fetch_news_article
+from services.shorts_uploader import upload_youtube_shorts
+from services.video_processor import create_overlay_video_output
 from settings import NewsSettings, PathSettings, TrendingSettings
+from utils.commons import normalize_hashtag
 
 
 def process_categories(yt) -> None:
@@ -21,18 +23,18 @@ def process_categories(yt) -> None:
         # Process each category
         for category in NewsSettings.CATEGORIES:
             try:
-                print(f"\n📌 Processing category: {category}")
+                print(f"\n\n\n📌 Processing category: {category}")
 
-                # 1. Generate the news card image and get article data
-                article, overlay_image = generate_news_card(category)
+                # 1. Fetch the news article data
+                article = fetch_news_article(category)
 
-                # 2. Create the overlay video
-                overlay_video_output = create_overlay_video_output(category, article, overlay_image)
+                # 2. Create the overlay video (includes HTML and image generation)
+                overlay_video_output = create_overlay_video_output(category, article)
 
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, category, overlay_video_output, article)
 
-                print(f"✅ Successfully processed {category}")
+                print(f"✅ Successfully processed category: {category}")
 
             except Exception as e:
                 print(f"⚠️ Error processing category {category}: {str(e)}")
@@ -69,19 +71,19 @@ def process_keywords(yt) -> None:
         # Process each hashtag
         for hashtag in hashtags:
             try:
-                print(f"\n🔍 Processing hashtag: {hashtag}")
+                print(f"\n\n\n🔍 Processing hashtag: {hashtag}")
                 query = normalize_hashtag(hashtag)
 
                 # 1. Generate news card with is_keyword=True
-                article, overlay_image = generate_news_card(query, is_keyword=True)
+                article = fetch_news_article(query, is_keyword=True)
 
-                # 2. Create the overlay video
-                overlay_video_output = create_overlay_video_output(query, article, overlay_image)
+                # 2. Create the overlay video (includes HTML and image generation)
+                overlay_video_output = create_overlay_video_output(query, article)
 
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
 
-                print(f"✅ Successfully processed hashtag {hashtag}")
+                print(f"✅ Successfully processed hashtag: {hashtag}")
 
             except Exception as e:
                 print(f"⚠️ Error processing hashtag {hashtag}: {str(e)}")

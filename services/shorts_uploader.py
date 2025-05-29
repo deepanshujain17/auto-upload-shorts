@@ -2,9 +2,13 @@ from typing import Optional
 
 from googleapiclient.discovery import Resource
 
+from core.youtube.youtube_api import add_to_playlist, upload_video
 from settings import YouTubeSettings
-from utils.metadata_utils import generate_video_tags, generate_video_title, generate_video_description
-from utils.youtube_api import upload_video, add_to_playlist
+from utils.metadata.metadata_utils import (
+    generate_video_description,
+    generate_video_tags,
+    generate_video_title
+)
 
 
 def upload_youtube_shorts(

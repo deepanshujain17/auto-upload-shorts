@@ -1,4 +1,3 @@
-import datetime
 from datetime import datetime, timezone, timedelta
 import os
 from settings import HTMLSettings

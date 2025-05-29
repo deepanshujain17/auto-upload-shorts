@@ -135,13 +135,13 @@ class PathSettings:
     ASSETS_VIDEO_DIR = "assets/videos"
     ASSETS_MUSIC_DIR = "assets/music"
     ASSETS_IMAGE_DIR = "assets/images"
-    NEWS_TEMP_DIR = "news/temp"
-    NEWS_CARDS_DIR = "news/news_cards"
+    HTML_CARD_DIR = "output/intermediate/html_card"
+    NEWS_CARDS_DIR = "output/intermediate/news_card"
 
     # File paths
     @staticmethod
     def get_html_output(category: str) -> str:
-        return f"{PathSettings.NEWS_TEMP_DIR}/temp_{category}.html"
+        return f"{PathSettings.HTML_CARD_DIR}/temp_{category}.html"
 
     @staticmethod
     def get_overlay_image(category: str) -> str:
