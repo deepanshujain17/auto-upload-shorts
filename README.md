@@ -83,6 +83,13 @@ process_type options:
     keywords   - Process only trending keywords/hashtags
 ```
 
+## Code Organization
+
+- `main.py` - Orchestrates the entire workflow by coordinating between services, utilizing core APIs, and common utilities
+- `core/` - Contains API client implementations for external services (News API, Trends API, YouTube API)
+- `services/` - Implements high-level business logic for authentication, news fetching, video processing, and YouTube uploads
+- `utils/` - Houses reusable utilities for media processing, metadata handling, and web operations
+
 ## Project Structure
 
 ```
