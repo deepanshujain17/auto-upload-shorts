@@ -23,7 +23,7 @@ def process_categories(yt) -> None:
         # Process each category
         for category in NewsSettings.CATEGORIES:
             try:
-                print(f"\n📌 Processing category: {category}")
+                print(f"\n\n\n📌 Processing category: {category}")
 
                 # 1. Fetch the news article data
                 article = fetch_news_article(category)
@@ -34,7 +34,7 @@ def process_categories(yt) -> None:
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, category, overlay_video_output, article)
 
-                print(f"✅ Successfully processed {category}")
+                print(f"✅ Successfully processed category: {category}")
 
             except Exception as e:
                 print(f"⚠️ Error processing category {category}: {str(e)}")
@@ -71,7 +71,7 @@ def process_keywords(yt) -> None:
         # Process each hashtag
         for hashtag in hashtags:
             try:
-                print(f"\n🔍 Processing hashtag: {hashtag}")
+                print(f"\n\n\n🔍 Processing hashtag: {hashtag}")
                 query = normalize_hashtag(hashtag)
 
                 # 1. Generate news card with is_keyword=True
@@ -83,7 +83,7 @@ def process_keywords(yt) -> None:
                 # 3. Upload the video to YouTube Shorts
                 upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
 
-                print(f"✅ Successfully processed hashtag {hashtag}")
+                print(f"✅ Successfully processed hashtag: {hashtag}")
 
             except Exception as e:
                 print(f"⚠️ Error processing hashtag {hashtag}: {str(e)}")
