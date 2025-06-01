@@ -18,7 +18,7 @@ class NewsSettings:
     COUNTRY = "in"
     MINUTES_AGO = 1440 # 24-hours Change this to get the latest news #IMP
     IN_FIELD = "title,description" # Not being used as of now
-    MAX_ARTICLES = 1 # TODO: In Future, get more articles to generate more videos with the same GNEWS Hits limit
+    MAX_ARTICLES = 3 # TODO: In Future, get more articles to generate more videos with the same GNEWS Hits limit
     SORT_BY = "publishedAt" # Another option: "relevance"
 
     # API Endpoints

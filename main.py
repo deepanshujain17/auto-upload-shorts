@@ -25,14 +25,15 @@ def process_categories(yt) -> None:
             try:
                 print(f"\n\n\n📌 Processing category: {category}")
 
-                # 1. Fetch the news article data
-                article = fetch_news_article(category)
+                # 1. Fetch the news articles data
+                articles = fetch_news_article(category)
 
-                # 2. Create the overlay video (includes HTML and image generation)
-                overlay_video_output = create_overlay_video_output(category, article)
+                for article in articles:
+                    # 2. Create the overlay video (includes HTML and image generation)
+                    overlay_video_output = create_overlay_video_output(category, article)
 
-                # 3. Upload the video to YouTube Shorts
-                upload_youtube_shorts(yt, category, overlay_video_output, article)
+                    # 3. Upload the video to YouTube Shorts
+                    upload_youtube_shorts(yt, category, overlay_video_output, article)
 
                 print(f"✅ Successfully processed category: {category}")
 
@@ -75,13 +76,14 @@ def process_keywords(yt) -> None:
                 query = normalize_hashtag(hashtag)
 
                 # 1. Generate news card with is_keyword=True
-                article = fetch_news_article(query, is_keyword=True)
+                articles = fetch_news_article(query, is_keyword=True)
 
-                # 2. Create the overlay video (includes HTML and image generation)
-                overlay_video_output = create_overlay_video_output(query, article)
+                for article in articles:
+                    # 2. Create the overlay video (includes HTML and image generation)
+                    overlay_video_output = create_overlay_video_output(query, article)
 
-                # 3. Upload the video to YouTube Shorts
-                upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
+                    # 3. Upload the video to YouTube Shorts
+                    upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
 
                 print(f"✅ Successfully processed hashtag: {hashtag}")
 
