@@ -6,7 +6,7 @@ from utils.commons import get_zulu_time_minus
 from core.news.hashtag_storage import HashtagStorage
 
 
-def get_category_news(category=None):
+def get_category_news(category=None) -> list[dict]:
     """
     Fetch news articles from GNews API for given categories
 
@@ -35,7 +35,7 @@ def get_category_news(category=None):
         response.raise_for_status()
         articles = response.json().get("articles", [])
         if articles:
-            result = articles[0]
+            result = articles[:NewsSettings.MAX_ARTICLES]
             print(f"✅ Successfully fetched article for {category}")
             return result
         else:
@@ -48,7 +48,7 @@ def get_category_news(category=None):
         raise
 
 
-def get_keyword_news(query: str) -> dict:
+def get_keyword_news(query: str) -> list[dict]:
     """
     Fetch news article from GNews API using a search query.
     Implements exponential backoff for rate limiting (HTTP 429).
@@ -95,12 +95,11 @@ def get_keyword_news(query: str) -> dict:
             response.raise_for_status()
             found_articles = response.json().get("articles", [])
             if found_articles:
-                article = found_articles[0]
-                article['hashtag'] = query  # Add the original hashtag to the article for reference
+                result = found_articles[:NewsSettings.MAX_ARTICLES]
                 # Save the successful query to history
                 HashtagStorage.save_hashtag(query)
                 print(f"✅ Successfully fetched article for {query}")
-                return article
+                return result
             else:
                 raise ValueError(f"🔍 No articles found for query: {query}")
 

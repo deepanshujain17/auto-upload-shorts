@@ -1,7 +1,7 @@
 from core.news.news_api_client import get_category_news, get_keyword_news
 
 
-def fetch_news_article(identifier: str, is_keyword: bool = False) -> dict:
+def fetch_news_article(identifier: str, is_keyword: bool = False) -> list[dict]:
     """
     Fetch news article for the given category or keyword.
     Args:
@@ -17,15 +17,17 @@ def fetch_news_article(identifier: str, is_keyword: bool = False) -> dict:
         # Fetch the news
         print("📰 Fetching news...")
         if is_keyword:
-            article = get_keyword_news(identifier)
-            print(f"Trending Keyword Article | {identifier}:\n{article}")
-            if not article:
+            articles = get_keyword_news(identifier)
+            print(f"Trending Keyword Article | {identifier}:\n{articles}")
+            if not articles:
                 raise ValueError(f"No article found for keyword: {identifier}")
         else:
-            article = get_category_news(identifier)  # identifier is category in this case
-            print(f"Trending Category Article | {identifier}:\n{article}")
+            articles = get_category_news(identifier)  # identifier is category in this case
+            print(f"Trending Category Article | {identifier}:\n{articles}")
+            if not articles:
+                raise ValueError(f"No article found for category: {identifier}")
 
-        return article
+        return articles
     except Exception as e:
         error_msg = f"Error fetching news article for {identifier}: {str(e)}"
         print(f"❌ {error_msg}")
