@@ -132,11 +132,13 @@ class YouTubeSettings:
 class PathSettings:
     # Directory paths
     OUTPUT_DIR = "output"
-    ASSETS_VIDEO_DIR = "assets/videos"
-    ASSETS_MUSIC_DIR = "assets/music"
-    ASSETS_IMAGE_DIR = "assets/images"
-    HTML_CARD_DIR = "output/intermediate/html_card"
-    NEWS_CARDS_DIR = "output/intermediate/news_card"
+    ASSETS_DIR = "assets"
+    CONFIG_DIR = f"{ASSETS_DIR}/config"
+    ASSETS_VIDEO_DIR = f"{ASSETS_DIR}/videos"
+    ASSETS_MUSIC_DIR = f"{ASSETS_DIR}/music"
+    ASSETS_IMAGE_DIR = f"{ASSETS_DIR}/images"
+    HTML_CARD_DIR = f"{OUTPUT_DIR}/intermediate/html_card"
+    NEWS_CARDS_DIR = f"{OUTPUT_DIR}/intermediate/news_card"
 
     # File paths
     @staticmethod
@@ -168,48 +170,13 @@ class TrendingSettings:
     USER_AGENT = "Mozilla/5.0"
     DEFAULT_LIMIT = 100
     MAX_HASHTAGS = 5  # Maximum number of hashtags to return #IMP
-    # Add MANUAL & SEASONAL hashtag queries here. These will be processed alongside trending hashtags. #IMP
-    MANUAL_HASHTAG_QUERIES = [
-        "Indian Army",
-        "IPL",
-        "India",
-        "Bharat",
-        "Modi",
-        "Bollywood",
-        "Bollywood star",
-        "Actress",
-        "Fashion",
-        "Miss",
-        "Pageant",
-        "Celebrity",
-        "Glamour",
-        "Fashion Trends",
-        "Scandal",
-        "Shocking",
-        "Controversy",
-        "Trailer",
-        "Challenge",
-        "Viral",
-        "Travel",
-        "Influencer",
-        "Cricket",
-        "Football",
-        "Sports",
-        "Gaming",
-        "Politics",
-        "Exercise",
-        "IPO",
-        "Father",
-        "Mother",
-        "Son",
-        "Daughter",
-        "Family",
-        "Love",
-        "Relationship",
-        "Wedding",
-        "Emotional",
-        "Festival",
-        "Celebration",
-        "Breaks",
-        "Internet",
-    ]
+
+    @staticmethod
+    def get_manual_hashtag_queries():
+        manual_hashtags_path = f"{PathSettings.CONFIG_DIR}/manual_hashtags.txt"
+        try:
+            with open(manual_hashtags_path, 'r') as file:
+                return [line.strip() for line in file if line.strip()]
+        except FileNotFoundError:
+            print(f"Warning: Manual hashtags file not found at {manual_hashtags_path}")
+            return []
