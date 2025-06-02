@@ -95,7 +95,7 @@ def get_keyword_news(query: str) -> list[dict]:
             response.raise_for_status()
             found_articles = response.json().get("articles", [])
             if found_articles:
-                result = found_articles[:NewsSettings.MAX_ARTICLES]
+                result = found_articles[:2]
                 # Save the successful query to history
                 HashtagStorage.save_hashtag(query)
                 print(f"✅ Successfully fetched article for {query}")
