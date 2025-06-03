@@ -49,6 +49,7 @@ def upload_youtube_shorts(
         ))
         privacy = YouTubeSettings.DEFAULT_PRIVACY
 
+        # TODO: Check in cache with title, if it exists already skip upload.
         print(f"🚀 Uploading {category} video to YouTube Shorts...")
         video_id = upload_video(
             yt,
