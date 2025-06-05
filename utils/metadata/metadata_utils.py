@@ -38,7 +38,7 @@ def generate_video_tags(
     ]
 
     # Combine tags ensuring uniqueness and proper limits
-    hashtag_tags = [hashtag.lstrip("#")] if hashtag else []
+    hashtag_tags = [''.join(hashtag.lstrip("#").split())] if hashtag else []
 
     # Combine tags from all sources, removing case-insensitive duplicates while preserving original order and casing
     seen = set()
@@ -71,7 +71,7 @@ def generate_video_title(
     """
     article_title = article.get("title", "No Title")
     # If hashtag, use that else (category case) use first article tag
-    title_hashtag_str = f"#{hashtag.lstrip("#")}" if hashtag else f"#{article_tags[0]}"
+    title_hashtag_str = f"#{''.join(hashtag.lstrip("#").split())}" if hashtag else f"#{article_tags[0]}"
 
     # Create base title with prefix
     base_title = "Breaking News: "
