@@ -24,7 +24,7 @@ def _generate_overlay_image(category: str, article: dict) -> str:
         Exception: If there's an error in generating the overlay image
     """
     try:
-        print(f"Generating overlay video from article of category: {category}")
+        print(f"\nGenerating overlay video from article of category: {category}")
 
         # Generate news card HTML
         html_output = PathSettings.get_html_output(category)

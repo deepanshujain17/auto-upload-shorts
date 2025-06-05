@@ -1,7 +1,7 @@
 import time
 import requests
 
-from settings import NewsSettings
+from settings import news_settings
 from utils.commons import get_zulu_time_minus
 from core.news.hashtag_storage import HashtagStorage
 
@@ -16,26 +16,24 @@ def get_category_news(category=None) -> list[dict]:
     """
 
     print(f"📰 Fetching news for category: {category}")
-    from_time = get_zulu_time_minus(NewsSettings.MINUTES_AGO)  # Fetch articles from the last X minutes
+    from_time = get_zulu_time_minus(news_settings.minutes_ago)
 
     params = {
-        # "q": NewsSettings.QUERY,
-        # "in": NewsSettings.IN_FIELD,
         "from": from_time,
         "category": category,
-        "lang": NewsSettings.LANGUAGE,
-        "country": NewsSettings.COUNTRY,
-        "max": NewsSettings.MAX_ARTICLES,
-        "apikey": NewsSettings.API_KEY,
-        "sortby": NewsSettings.SORT_BY,
+        "lang": news_settings.language,
+        "country": news_settings.country,
+        "max": news_settings.max_articles,
+        "apikey": news_settings.api_key,
+        "sortby": news_settings.sort_by,
     }
 
     try:
-        response = requests.get(NewsSettings.TOP_HEADLINES_ENDPOINT, params=params)
+        response = requests.get(news_settings.top_headlines_endpoint, params=params)
         response.raise_for_status()
         articles = response.json().get("articles", [])
         if articles:
-            result = articles[:NewsSettings.MAX_ARTICLES]
+            result = articles[:news_settings.max_articles]
             print(f"✅ Successfully fetched article for {category}")
             return result
         else:
@@ -65,25 +63,25 @@ def get_keyword_news(query: str) -> list[dict]:
         requests.exceptions.RequestException: If there's a network error after all retries
     """
     # Check if this hashtag was already processed today
-    if HashtagStorage.is_hashtag_processed_today(query):
-        raise ValueError(f"🔄 Query '{query}' was already processed today")
+    if HashtagStorage.is_hashtag_processed_today(f"{query}_{news_settings.country}"):
+        raise ValueError(f"🔄 Query '{query}' was already processed today for country {news_settings.country}")
 
-    from_time = get_zulu_time_minus(NewsSettings.MINUTES_AGO)
+    from_time = get_zulu_time_minus(news_settings.minutes_ago)
 
     params = {
         "q": query,
         "from": from_time,
-        "lang": NewsSettings.LANGUAGE,
-        "country": NewsSettings.COUNTRY,
-        "max": NewsSettings.MAX_ARTICLES,
-        "apikey": NewsSettings.API_KEY,
-        "sortby": NewsSettings.SORT_BY,
+        "lang": news_settings.language,
+        "country": news_settings.country,
+        "max": news_settings.max_articles,
+        "apikey": news_settings.api_key,
+        "sortby": news_settings.sort_by,
     }
 
     max_attempts = 3
     for attempt in range(max_attempts):
         try:
-            response = requests.get(NewsSettings.SEARCH_ENDPOINT, params=params)
+            response = requests.get(news_settings.search_endpoint, params=params)
 
             # Handle rate limiting with exponential backoff
             if response.status_code == 429:
@@ -96,8 +94,8 @@ def get_keyword_news(query: str) -> list[dict]:
             found_articles = response.json().get("articles", [])
             if found_articles:
                 result = found_articles[:2]
-                # Save the successful query to history
-                HashtagStorage.save_hashtag(query)
+                # Save the successful query to history with country code
+                HashtagStorage.save_hashtag(f"{query}_{news_settings.country}")
                 print(f"✅ Successfully fetched article for {query}")
                 return result
             else:
