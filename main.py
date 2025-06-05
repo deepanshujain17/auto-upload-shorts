@@ -8,7 +8,7 @@ from services.auth import authenticate_youtube
 from services.fetch_news import fetch_news_article
 from services.shorts_uploader import upload_youtube_shorts
 from services.video_processor import create_overlay_video_output
-from settings import NewsSettings, PathSettings, TrendingSettings
+from settings import news_settings, PathSettings, TrendingSettings
 from utils.commons import normalize_hashtag
 
 
@@ -21,7 +21,7 @@ def process_categories(yt) -> None:
     """
     try:
         # Process each category
-        for category in NewsSettings.CATEGORIES:
+        for category in news_settings.categories:
             try:
                 print(f"\n\n\n📌 Processing category: {category}")
 
@@ -112,7 +112,7 @@ def main() -> None:
             sys.exit(1)
 
         try:
-            NewsSettings.country = country_arg  # This will use the Pydantic model's setter with validation
+            news_settings.country = country_arg  # Using the Pydantic model's setter
         except ValueError as e:
             print(f"Invalid country code: {country_arg}. {str(e)}")
             sys.exit(1)
@@ -123,11 +123,11 @@ def main() -> None:
 
         # Run the specified process
         if process_type in ["categories", "all"]:
-            print(f"\n🎯 Starting category processing for country: {NewsSettings.country}...")
+            print(f"\n🎯 Starting category processing for country: {news_settings.country}...")
             process_categories(yt)
 
         if process_type in ["keywords", "all"]:
-            print(f"\n🎯 Starting keyword processing for country: {NewsSettings.country}...")
+            print(f"\n🎯 Starting keyword processing for country: {news_settings.country}...")
             process_keywords(yt)
 
         print("\n✨ All processing completed successfully!")

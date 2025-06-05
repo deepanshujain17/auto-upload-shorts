@@ -3,7 +3,7 @@ from pathlib import Path
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.VideoClip import ImageClip
 
-from settings import NewsSettings, PathSettings, VideoSettings
+from settings import PathSettings, VideoSettings, news_settings
 from utils.media.audio_composer import AudioComposer
 from utils.media.video_composer import VideoComposer
 from utils.web.browser_utils import render_card_to_image
@@ -66,10 +66,10 @@ def create_overlay_video_output(category: str, article: dict) -> str:
 
         # Get background assets
         bg_image = PathSettings.get_image_path(
-            NewsSettings.CATEGORY_BG_IMAGE.get(category, NewsSettings.CATEGORY_BG_IMAGE["default"])
+            news_settings.category_bg_image.get(category, news_settings.category_bg_image["default"])
         )
         bg_music = PathSettings.get_music_path(
-            NewsSettings.CATEGORY_BGM.get(category, NewsSettings.CATEGORY_BGM["default"])
+            news_settings.category_bgm.get(category, news_settings.category_bgm["default"])
         )
         print(f"📸 Using background image: {bg_image}")
         print(f"🎵 Using background music: {bg_music}")
@@ -116,4 +116,3 @@ def create_overlay_video_output(category: str, article: dict) -> str:
     except Exception as e:
         print(f"❌ Error creating video for {category}: {str(e)}")
         raise
-
