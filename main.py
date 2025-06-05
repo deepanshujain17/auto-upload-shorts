@@ -58,7 +58,7 @@ def process_keywords(yt) -> None:
         # Get trending hashtags and combine with manual queries
         trending_hashtags = get_trending_hashtags()
         manual_hashtags = TrendingSettings.get_manual_hashtag_queries()
-        hashtags = list(set(trending_hashtags + manual_hashtags))  # Remove duplicates
+        hashtags = list(dict.fromkeys(manual_hashtags + trending_hashtags))  # Remove duplicates while preserving order
 
         print(f"\n📈 Found {len(hashtags)} hashtags to process:")
         for idx, tag in enumerate(hashtags, 1):

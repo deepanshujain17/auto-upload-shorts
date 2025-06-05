@@ -16,6 +16,7 @@ def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
     """
     headers = {"User-Agent": TrendingSettings.USER_AGENT}
     trends_url = TrendingSettings.get_trends_url()
+    print(f"Fetching trending hashtags from: {trends_url}")
 
     try:
         res = requests.get(trends_url, headers=headers)
