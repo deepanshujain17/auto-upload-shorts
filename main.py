@@ -105,8 +105,16 @@ def main() -> None:
 
         # Parse and validate command line arguments
         process_type = sys.argv[1].lower() if len(sys.argv) > 1 else "all"
+        country_arg = sys.argv[2].lower() if len(sys.argv) > 2 else "in"
+
         if process_type not in ["all", "categories", "keywords"]:
             print(f"Invalid process type: {process_type}")
+            sys.exit(1)
+
+        try:
+            NewsSettings.country = country_arg  # This will use the Pydantic model's setter with validation
+        except ValueError as e:
+            print(f"Invalid country code: {country_arg}. {str(e)}")
             sys.exit(1)
 
         # Authenticate to YouTube
@@ -115,11 +123,11 @@ def main() -> None:
 
         # Run the specified process
         if process_type in ["categories", "all"]:
-            print("\n🎯 Starting category processing...")
+            print(f"\n🎯 Starting category processing for country: {NewsSettings.country}...")
             process_categories(yt)
 
         if process_type in ["keywords", "all"]:
-            print("\n🎯 Starting keyword processing...")
+            print(f"\n🎯 Starting keyword processing for country: {NewsSettings.country}...")
             process_keywords(yt)
 
         print("\n✨ All processing completed successfully!")

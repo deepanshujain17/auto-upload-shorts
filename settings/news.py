@@ -16,5 +16,15 @@ class NewsSettings(BaseModel):
     search_endpoint: str = "https://gnews.io/api/v4/search"
     top_headlines_endpoint: str = "https://gnews.io/api/v4/top-headlines"
 
+    @property
+    def country(self) -> str:
+        return self._country
+
+    @country.setter
+    def country(self, value: str) -> None:
+        if not isinstance(value, str) or len(value) != 2:
+            raise ValueError("Country must be a 2-letter code")
+        self._country = value.lower()
+
 # Create a global instance
 news_settings = NewsSettings()
