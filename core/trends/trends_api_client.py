@@ -8,16 +8,18 @@ from settings import TrendingSettings
 
 def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
     """
-    Fetch trending hashtags from trends24.in/india
+    Fetch trending hashtags from trends24.in based on country settings
     Args:
         limit: Maximum number of hashtags to return (default: 50)
     Returns:
         list: List of unique trending hashtags that match the pattern (letters, digits, underscore, spaces, # only)
     """
     headers = {"User-Agent": TrendingSettings.USER_AGENT}
+    trends_url = TrendingSettings.get_trends_url()
+    print(f"Fetching trending hashtags from: {trends_url}")
 
     try:
-        res = requests.get(TrendingSettings.TRENDS_URL, headers=headers)
+        res = requests.get(trends_url, headers=headers)
         res.raise_for_status()  # Raise exception for bad status codes
         soup = BeautifulSoup(res.text, "html.parser")
 

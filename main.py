@@ -8,7 +8,7 @@ from services.auth import authenticate_youtube
 from services.fetch_news import fetch_news_article
 from services.shorts_uploader import upload_youtube_shorts
 from services.video_processor import create_overlay_video_output
-from settings import NewsSettings, PathSettings, TrendingSettings
+from settings import news_settings, PathSettings, TrendingSettings
 from utils.commons import normalize_hashtag
 
 
@@ -21,7 +21,7 @@ def process_categories(yt) -> None:
     """
     try:
         # Process each category
-        for category in NewsSettings.CATEGORIES:
+        for category in news_settings.categories:
             try:
                 print(f"\n\n\n📌 Processing category: {category}")
 
@@ -58,7 +58,7 @@ def process_keywords(yt) -> None:
         # Get trending hashtags and combine with manual queries
         trending_hashtags = get_trending_hashtags()
         manual_hashtags = TrendingSettings.get_manual_hashtag_queries()
-        hashtags = list(set(trending_hashtags + manual_hashtags))  # Remove duplicates
+        hashtags = list(dict.fromkeys(manual_hashtags + trending_hashtags))  # Remove duplicates while preserving order
 
         print(f"\n📈 Found {len(hashtags)} hashtags to process:")
         for idx, tag in enumerate(hashtags, 1):
@@ -105,8 +105,16 @@ def main() -> None:
 
         # Parse and validate command line arguments
         process_type = sys.argv[1].lower() if len(sys.argv) > 1 else "all"
+        country_arg = sys.argv[2].lower() if len(sys.argv) > 2 else "in"
+
         if process_type not in ["all", "categories", "keywords"]:
             print(f"Invalid process type: {process_type}")
+            sys.exit(1)
+
+        try:
+            news_settings.country = country_arg  # Using the Pydantic model's setter
+        except ValueError as e:
+            print(f"Invalid country code: {country_arg}. {str(e)}")
             sys.exit(1)
 
         # Authenticate to YouTube
@@ -115,11 +123,11 @@ def main() -> None:
 
         # Run the specified process
         if process_type in ["categories", "all"]:
-            print("\n🎯 Starting category processing...")
+            print(f"\n🎯 Starting category processing for country: {news_settings.country}...")
             process_categories(yt)
 
         if process_type in ["keywords", "all"]:
-            print("\n🎯 Starting keyword processing...")
+            print(f"\n🎯 Starting keyword processing for country: {news_settings.country}...")
             process_keywords(yt)
 
         print("\n✨ All processing completed successfully!")

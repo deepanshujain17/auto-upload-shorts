@@ -1,12 +1,12 @@
-name: Daily YouTube Upload - Trending Keywords
+name: Daily YouTube Upload - Categories
 
 on:
-  # 12:30 UTC = 18:00 IST
+  # For USA context, 1:00 PM ET → 10:30 PM IST (same day). ET is UTC - 4:00 hours
   schedule:
-    # Weekdays at 6:00 AM IST
-    - cron: '30 0 * * 1-5'
-    # Weekends at 6:00 AM IST
-    - cron: '30 0 * * 6,0'
+    # Weekdays: 12:00, 19:00 ET
+    - cron: '0 16,23 * * 1-5'
+    # Weekends: 09:00, 15:00 ET
+    - cron: '0 13,19 * * 6,0'
   workflow_dispatch:  # Allow manual runs too
 
 jobs:
@@ -54,27 +54,5 @@ jobs:
         run: |
           echo "${{ secrets.CLIENT_SECRETS_B64 }}" | base64 -d > client_secrets.json
 
-      - name: Cache trending hashtags history
-        uses: actions/cache@v3
-        with:
-          path: output/history/trending_hashtags.txt
-          key: trending-hashtags-latest
-          restore-keys: |
-            trending-hashtags-
-
-      - name: Check cached file presence
-        run: |
-          if [ -f output/history/trending_hashtags.txt ]; then
-            echo "✅ Trending hashtags file found in cache."
-            cat output/history/trending_hashtags.txt
-          else
-            echo "❌ No cached trending hashtags file found."
-          fi
-
       - name: Run upload script
-        run: python main.py keywords
-
-      - name: Show updated trending hashtags file
-        run: |
-          echo "🔄 Updated trending hashtags:"
-          cat output/history/trending_hashtags.txt
+        run: python main.py categories us
