@@ -8,7 +8,7 @@ class TrendingSettings:
     }
     USER_AGENT = "Mozilla/5.0"
     DEFAULT_LIMIT = 100
-    MAX_HASHTAGS = 5  # Maximum number of hashtags to return
+    MAX_HASHTAGS = 3  # Maximum number of hashtags to return
 
     @staticmethod
     def get_trends_url():
