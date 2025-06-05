@@ -1,4 +1,4 @@
-name: Daily YouTube Upload - Trending Keywords
+name: Daily YouTube Upload - Trending Keywords US
 
 on:
   # For USA context, 1:00 PM ET → 10:30 PM IST (same day). ET is UTC - 4:00 hours
