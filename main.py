@@ -60,20 +60,23 @@ def process_keywords(yt) -> None:
         manual_hashtags = TrendingSettings.get_manual_hashtag_queries()
         hashtags = list(dict.fromkeys(manual_hashtags + trending_hashtags))  # Remove duplicates while preserving order
 
-        print(f"\n📈 Found {len(hashtags)} hashtags to process:")
-        for idx, tag in enumerate(hashtags, 1):
-            source = "(manual)" if tag in manual_hashtags else "(trending)"
-            print(f"{idx}. {tag} {source}")
-
         if not hashtags:
             print("No hashtags found to process")
             return
 
+        print(f"\n📈 Found {len(hashtags)} hashtags to process:")
+
+        hashtag_sources = {}
+        for idx, tag in enumerate(hashtags, 1):
+            source = "manual" if tag in manual_hashtags else "trending"
+            hashtag_sources[tag] = source
+            print(f"{idx}. {tag} ({source})")
+
         # Process each hashtag
         for hashtag in hashtags:
             try:
-                print(f"\n\n\n🔍 Processing hashtag: {hashtag}")
-                query = normalize_hashtag(hashtag)
+                query = normalize_hashtag(hashtag) if hashtag_sources[hashtag] == "trending" else hashtag
+                print(f"\n\n\n🔍 Processing hashtag: {hashtag}. Converted query: {query}")
 
                 # 1. Generate news card with is_keyword=True
                 articles = fetch_news_article(query, is_keyword=True)
