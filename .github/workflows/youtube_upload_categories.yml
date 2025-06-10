@@ -39,11 +39,6 @@ jobs:
         apt-get install -y google-chrome-stable
         google-chrome --version
 
-    - name: Check versions
-      run: |
-        google-chrome --version
-        python -c "from webdriver_manager.chrome import ChromeDriverManager; print(ChromeDriverManager().install())"
-
     - name: Cache pip dependencies
       uses: actions/cache@v3
       with:
@@ -54,6 +49,11 @@ jobs:
 
     - name: Install dependencies
       run: pip install --no-cache-dir -r requirements.txt
+
+    - name: Check versions
+      run: |
+        google-chrome --version
+        python -c "from webdriver_manager.chrome import ChromeDriverManager; print(ChromeDriverManager().install())"
 
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v4  # Updated to v4
