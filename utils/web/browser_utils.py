@@ -6,6 +6,7 @@ Provides functionality to render HTML files to images using headless Chrome.
 # Standard library imports
 import os
 from time import sleep
+import tempfile
 
 # Third-party imports
 from selenium import webdriver
@@ -41,6 +42,12 @@ def render_card_to_image(html_file: str, output_image: str) -> None:
         options = Options()
         options.add_argument('--headless')
         options.add_argument(f'--window-size={VideoSettings.WINDOW_WIDTH},{VideoSettings.WINDOW_HEIGHT}')
+
+        # Add unique user data directory
+        temp_dir = tempfile.mkdtemp()
+        options.add_argument(f'--user-data-dir={temp_dir}')
+        options.add_argument('--no-sandbox')
+        options.add_argument('--disable-dev-shm-usage')
 
         # Initialize Chrome WebDriver
         driver = webdriver.Chrome(service=Service(ChromeDriverManager().install()), options=options)
