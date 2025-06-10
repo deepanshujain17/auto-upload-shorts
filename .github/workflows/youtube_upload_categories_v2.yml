@@ -1,4 +1,4 @@
-name: Daily YouTube Upload - Categories
+name: Daily YouTube Upload - Categories V2
 
 on:
   # 12:30 UTC = 18:00 IST. IST is UTC + 5:30 hours
