@@ -15,66 +15,42 @@ jobs:
 
     steps:
       - name: Checkout repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
 
-      - name: Install FFmpeg
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg
+      - name: Setup pip cache directory
+        run: mkdir -p ~/.cache/pip
 
-#      - name: Install Hindi (Devanagari) fonts
-#        run: |
-#          sudo apt-get update
-#          sudo apt-get install -y fonts-noto fonts-noto-cjk fonts-noto-color-emoji fonts-noto-unhinted
+      - name: Cache pip dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
 
-      - name: Install dependencies
+      - name: Install system deps & Python deps in parallel
         run: |
-          pip install -r requirements.txt
+         (sudo apt-get update && sudo apt-get install -y ffmpeg) &
+         pip install -r requirements.txt &
+         wait
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           aws-region: ${{ secrets.AWS_REGION }}
 
-      - name: Export secret to .env file
-        run: echo "GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}" > .env
-
-      - name: Restore token.pkl
+      - name: Setup environment and secrets
         run: |
+          echo "GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}" > .env
           echo "${{ secrets.TOKEN_PKL_B64 }}" | base64 -d > token.pkl
-
-      - name: Write client_secrets.json
-        run: |
           echo "${{ secrets.CLIENT_SECRETS_B64 }}" | base64 -d > client_secrets.json
-
-      - name: Cache trending hashtags history
-        uses: actions/cache@v3
-        with:
-          path: output/history/trending_hashtags.txt
-          key: trending-hashtags-latest
-          restore-keys: |
-            trending-hashtags-
-
-      - name: Check cached file presence
-        run: |
-          if [ -f output/history/trending_hashtags.txt ]; then
-            echo "✅ Trending hashtags file found in cache."
-            cat output/history/trending_hashtags.txt
-          else
-            echo "❌ No cached trending hashtags file found."
-          fi
 
       - name: Run upload script
         run: python main.py keywords us
-
-      - name: Show updated trending hashtags file
-        run: |
-          echo "🔄 Updated trending hashtags:"
-          cat output/history/trending_hashtags.txt
