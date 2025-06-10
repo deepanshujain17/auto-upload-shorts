@@ -41,15 +41,10 @@ jobs:
 #      - name: Install dependencies
 #        run: pip install -r requirements.txt
           
-          
-        # Parallel installation for speed
       - name: Install system deps & Python deps in parallel
         run: |
-        # Start system deps in background
          (sudo apt-get update && sudo apt-get install -y ffmpeg) &
-        # Install Python deps while system deps install
          pip install --no-cache-dir -r requirements.txt &
-        # Wait for both to complete
          wait
 
 
