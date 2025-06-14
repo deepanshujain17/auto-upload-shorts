@@ -11,6 +11,9 @@ from utils.media.video_composer import VideoComposer
 from utils.web.browser_utils import render_card_to_image
 from utils.web.html_utils import create_html_card
 
+# Create a shared thread pool executor
+_shared_executor = ThreadPoolExecutor(max_workers=3)
+
 
 async def _generate_overlay_image(category: str, article: dict) -> str:
     loop = asyncio.get_running_loop()
@@ -53,8 +56,7 @@ def _generate_overlay_image_sync(category: str, article: dict) -> str:
 
 async def create_overlay_video_output(category: str, article: dict) -> str:
     loop = asyncio.get_running_loop()
-    with ThreadPoolExecutor() as pool:
-        return await loop.run_in_executor(pool, create_overlay_video_output_sync, category, article)
+    return await loop.run_in_executor(_shared_executor, create_overlay_video_output_sync, category, article)
 
 
 def create_overlay_video_output_sync(category: str, article: dict) -> str:
