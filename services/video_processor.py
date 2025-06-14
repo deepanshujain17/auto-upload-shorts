@@ -2,6 +2,7 @@ from pathlib import Path
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
 from typing import Optional
+import multiprocessing
 
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.VideoClip import ImageClip
@@ -17,13 +18,27 @@ from utils.file_lock import FileLock
 _shared_executor: Optional[ThreadPoolExecutor] = None
 _executor_lock = asyncio.Lock()
 
+# Global semaphore to limit concurrent video processing
+# This helps prevent memory issues with multiple moviepy instances
+_video_semaphore: Optional[asyncio.Semaphore] = None
+
+def get_video_semaphore() -> asyncio.Semaphore:
+    """Get the global video processing semaphore."""
+    global _video_semaphore
+    if _video_semaphore is None:
+        # Allow slightly more concurrent video processing tasks than CPUs
+        # but not too many to prevent memory issues
+        cpu_count = multiprocessing.cpu_count()
+        max_concurrent = max(1, min(cpu_count + 2, 8))  # Between 1 and 8
+        _video_semaphore = asyncio.Semaphore(max_concurrent)
+    return _video_semaphore
+
 def get_executor() -> ThreadPoolExecutor:
     """Get or create the shared thread pool executor."""
     global _shared_executor
     if _shared_executor is None:
         # Increase number of workers for better parallelism
         # Using CPU count or slightly higher for IO-bound portions
-        import multiprocessing
         cpu_count = multiprocessing.cpu_count()
         _shared_executor = ThreadPoolExecutor(max_workers=max(cpu_count * 2, 8))
     return _shared_executor
