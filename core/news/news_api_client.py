@@ -6,6 +6,21 @@ from settings import news_settings
 from utils.commons import get_zulu_time_minus
 from core.news.hashtag_storage import HashtagStorage
 
+# Shared session instance
+_session: aiohttp.ClientSession = None
+
+async def get_session() -> aiohttp.ClientSession:
+    """Get or create the shared aiohttp ClientSession."""
+    global _session
+    if _session is None or _session.closed:
+        _session = aiohttp.ClientSession()
+    return _session
+
+async def close_session():
+    """Close the shared session."""
+    global _session
+    if _session and not _session.closed:
+        await _session.close()
 
 async def get_category_news(category=None) -> List[Dict[str, Any]]:
     """
@@ -29,17 +44,17 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
     }
 
     try:
-        async with aiohttp.ClientSession() as session:
-            async with session.get(news_settings.top_headlines_endpoint, params=params) as response:
-                response.raise_for_status()
-                data = await response.json()
-                articles = data.get("articles", [])
-                if articles:
-                    result = articles[:news_settings.max_articles]
-                    print(f"✅ Successfully fetched article for {category}")
-                    return result
-                else:
-                    raise ValueError(f"🔍 No articles found for category: {category}")
+        session = await get_session()
+        async with session.get(news_settings.top_headlines_endpoint, params=params) as response:
+            response.raise_for_status()
+            data = await response.json()
+            articles = data.get("articles", [])
+            if articles:
+                result = articles[:news_settings.max_articles]
+                print(f"✅ Successfully fetched article for {category}")
+                return result
+            else:
+                raise ValueError(f"🔍 No articles found for category: {category}")
     except aiohttp.ClientError as e:
         print(f"Network error while fetching {category}: {str(e)}")
         raise
@@ -82,26 +97,26 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
     max_attempts = 3
     for attempt in range(max_attempts):
         try:
-            async with aiohttp.ClientSession() as session:
-                async with session.get(news_settings.search_endpoint, params=params) as response:
-                    # Handle rate limiting with exponential backoff
-                    if response.status == 429:
-                        wait_time = 2 ** attempt  # 1, 2, 4 seconds
-                        print(f"⏳ Rate limited. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
-                        await asyncio.sleep(wait_time)
-                        continue
+            session = await get_session()
+            async with session.get(news_settings.search_endpoint, params=params) as response:
+                # Handle rate limiting with exponential backoff
+                if response.status == 429:
+                    wait_time = 2 ** attempt  # 1, 2, 4 seconds
+                    print(f"⏳ Rate limited. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
+                    await asyncio.sleep(wait_time)
+                    continue
 
-                    response.raise_for_status()
-                    data = await response.json()
-                    found_articles = data.get("articles", [])
-                    if found_articles:
-                        result = found_articles[:2]
-                        # Save the successful query to history with country code
-                        HashtagStorage.save_hashtag(f"{query}_{news_settings.country}")
-                        print(f"✅ Successfully fetched article for {query}")
-                        return result
-                    else:
-                        raise ValueError(f"🔍 No articles found for query: {query}")
+                response.raise_for_status()
+                data = await response.json()
+                found_articles = data.get("articles", [])
+                if found_articles:
+                    result = found_articles[:2]
+                    # Save the successful query to history with country code
+                    HashtagStorage.save_hashtag(f"{query}_{news_settings.country}")
+                    print(f"✅ Successfully fetched article for {query}")
+                    return result
+                else:
+                    raise ValueError(f"🔍 No articles found for query: {query}")
 
         except ValueError as ve:
             print(str(ve))

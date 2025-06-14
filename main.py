@@ -95,6 +95,9 @@ async def process_keywords(yt) -> None:
 
 async def async_main() -> None:
     """Async main entry point for the script."""
+    from core.news.news_api_client import close_session
+    from services.video_processor import cleanup_executor  # Add this import
+
     try:
         # Create output directory if it doesn't exist
         os.makedirs(PathSettings.OUTPUT_DIR, exist_ok=True)
@@ -134,6 +137,10 @@ async def async_main() -> None:
     except Exception as e:
         print(f"\n❌ Fatal error: {str(e)}")
         sys.exit(1)
+    finally:
+        # Clean up resources
+        await close_session()
+        await cleanup_executor()
 
 
 if __name__ == "__main__":

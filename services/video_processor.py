@@ -1,6 +1,7 @@
 from pathlib import Path
 import asyncio
 from concurrent.futures import ThreadPoolExecutor
+from typing import Optional
 
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.VideoClip import ImageClip
@@ -11,13 +12,32 @@ from utils.media.video_composer import VideoComposer
 from utils.web.browser_utils import render_card_to_image
 from utils.web.html_utils import create_html_card
 
-# Create a shared thread pool executor
-_shared_executor = ThreadPoolExecutor(max_workers=3)
+# Shared thread pool executor with proper initialization
+_shared_executor: Optional[ThreadPoolExecutor] = None
 
+def get_executor() -> ThreadPoolExecutor:
+    """Get or create the shared thread pool executor."""
+    global _shared_executor
+    if _shared_executor is None:
+        _shared_executor = ThreadPoolExecutor(max_workers=3)
+    return _shared_executor
+
+async def cleanup_executor():
+    """Cleanup the shared executor."""
+    global _shared_executor
+    if _shared_executor is not None:
+        _shared_executor.shutdown(wait=True)
+        _shared_executor = None
 
 async def _generate_overlay_image(category: str, article: dict) -> str:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_shared_executor, _generate_overlay_image_sync, category, article)
+    """Generate the overlay image asynchronously using the shared executor."""
+    try:
+        loop = asyncio.get_running_loop()
+        executor = get_executor()
+        return await loop.run_in_executor(executor, _generate_overlay_image_sync, category, article)
+    except Exception as e:
+        print(f"Error in _generate_overlay_image: {str(e)}")
+        raise
 
 
 def _generate_overlay_image_sync(category: str, article: dict) -> str:
@@ -55,8 +75,14 @@ def _generate_overlay_image_sync(category: str, article: dict) -> str:
 
 
 async def create_overlay_video_output(category: str, article: dict) -> str:
-    loop = asyncio.get_running_loop()
-    return await loop.run_in_executor(_shared_executor, create_overlay_video_output_sync, category, article)
+    """Create an overlay video asynchronously using the shared executor."""
+    try:
+        loop = asyncio.get_running_loop()
+        executor = get_executor()
+        return await loop.run_in_executor(executor, create_overlay_video_output_sync, category, article)
+    except Exception as e:
+        print(f"Error in create_overlay_video_output: {str(e)}")
+        raise
 
 
 def create_overlay_video_output_sync(category: str, article: dict) -> str:
