@@ -11,9 +11,11 @@ from utils.media.audio_composer import AudioComposer
 from utils.media.video_composer import VideoComposer
 from utils.web.browser_utils import render_card_to_image
 from utils.web.html_utils import create_html_card
+from utils.file_lock import FileLock
 
 # Shared thread pool executor with proper initialization
 _shared_executor: Optional[ThreadPoolExecutor] = None
+_executor_lock = asyncio.Lock()
 
 def get_executor() -> ThreadPoolExecutor:
     """Get or create the shared thread pool executor."""
@@ -25,20 +27,33 @@ def get_executor() -> ThreadPoolExecutor:
 async def cleanup_executor():
     """Cleanup the shared executor."""
     global _shared_executor
-    if _shared_executor is not None:
-        _shared_executor.shutdown(wait=True)
-        _shared_executor = None
+    async with _executor_lock:
+        if _shared_executor is not None:
+            _shared_executor.shutdown(wait=True)
+            _shared_executor = None
 
 async def _generate_overlay_image(category: str, article: dict) -> str:
     """Generate the overlay image asynchronously using the shared executor."""
     try:
-        loop = asyncio.get_running_loop()
-        executor = get_executor()
-        return await loop.run_in_executor(executor, _generate_overlay_image_sync, category, article)
+        # Get file paths
+        html_output = PathSettings.get_html_output(category)
+        overlay_image = PathSettings.get_overlay_image(category)
+
+        # Acquire locks for both files
+        await FileLock.acquire(html_output)
+        await FileLock.acquire(overlay_image)
+
+        try:
+            loop = asyncio.get_running_loop()
+            executor = get_executor()
+            return await loop.run_in_executor(executor, _generate_overlay_image_sync, category, article)
+        finally:
+            # Release locks in reverse order
+            await FileLock.release(overlay_image)
+            await FileLock.release(html_output)
     except Exception as e:
         print(f"Error in _generate_overlay_image: {str(e)}")
         raise
-
 
 def _generate_overlay_image_sync(category: str, article: dict) -> str:
     """Generate the news card overlay image.
@@ -77,9 +92,17 @@ def _generate_overlay_image_sync(category: str, article: dict) -> str:
 async def create_overlay_video_output(category: str, article: dict) -> str:
     """Create an overlay video asynchronously using the shared executor."""
     try:
-        loop = asyncio.get_running_loop()
-        executor = get_executor()
-        return await loop.run_in_executor(executor, create_overlay_video_output_sync, category, article)
+        # Get file paths that need locking
+        output_video_path = PathSettings.get_final_video(category)
+        await FileLock.acquire(output_video_path)
+
+        try:
+            loop = asyncio.get_running_loop()
+            async with _executor_lock:
+                executor = get_executor()
+                return await loop.run_in_executor(executor, create_overlay_video_output_sync, category, article)
+        finally:
+            await FileLock.release(output_video_path)
     except Exception as e:
         print(f"Error in create_overlay_video_output: {str(e)}")
         raise
