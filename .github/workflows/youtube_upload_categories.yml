@@ -9,9 +9,20 @@ on:
     - cron: '30 0,2 * * 6,0'
   workflow_dispatch: # Allow manual runs too
 
+# Prevent multiple workflow runs from overlapping
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   upload:
     runs-on: ubuntu-latest
+    # Use a container with Python and FFmpeg pre-installed to save startup time
+    container:
+      image: jrottenberg/ffmpeg:4.4-ubuntu
+
+    # Set a timeout to ensure jobs don't run indefinitely if something hangs
+    timeout-minutes: 30
 
     steps:
       - name: Checkout repo
@@ -21,23 +32,18 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+          cache: 'pip' # Built-in pip caching - much simpler than manual caching
 
-      - name: Setup pip cache directory
-        run: mkdir -p ~/.cache/pip
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v3
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('**/requirements.txt') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
-          
-      - name: Install system deps & Python deps in parallel
+      - name: Install system dependencies
         run: |
-         (sudo apt-get update && sudo apt-get install -y ffmpeg) &
-         pip install -r requirements.txt &
-         wait
+          apt-get update && apt-get install -y --no-install-recommends \
+            ca-certificates \
+            git \
+            wget \
+            curl
+
+      - name: Install Python dependencies
+        run: pip install --no-cache-dir -r requirements.txt
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v4
