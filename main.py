@@ -99,7 +99,8 @@ async def process_keywords(yt) -> None:
 async def async_main() -> None:
     """Async main entry point for the script."""
     from core.news.news_api_client import close_session
-    from services.video_processor import cleanup_executor  # Add this import
+    from services.video_processor import cleanup_executor
+    from services.shorts_uploader import cleanup_upload_executor
 
     try:
         # Create output directory if it doesn't exist
@@ -144,6 +145,7 @@ async def async_main() -> None:
         # Clean up resources
         await close_session()
         await cleanup_executor()
+        await cleanup_upload_executor()
 
 
 if __name__ == "__main__":

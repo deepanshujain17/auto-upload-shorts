@@ -142,41 +142,51 @@ def create_overlay_video_output_sync(category: str, article: dict) -> str:
         print(f"📸 Using background image: {bg_image}")
         print(f"🎵 Using background music: {bg_music}")
 
-        # Generate article audio
-        print("🎙️ Generating audio from article...")
-        speech_audio = AudioComposer.generate_article_audio(article)
-        duration = speech_audio.duration
-
-        # Validate input files
-        for path in [bg_image, bg_music, overlay_image]:
-            if not Path(path).is_file():
-                raise FileNotFoundError(f"Required file not found: {path}")
-
-        # Ensure output directory exists
-        Path(output_video_path).parent.mkdir(parents=True, exist_ok=True)
-
-        # Create video with all components in one step
-        with AudioFileClip(bg_music) as music_audio, \
-             ImageClip(bg_image) as bg_clip, \
-             ImageClip(overlay_image) as overlay_clip:
-
-            # Configure & Create composite audio
-            combined_audio = AudioComposer.create_composite_audio(
-                speech_audio, music_audio, duration
+        # The async parts must be executed in the main thread using an event loop
+        # Temporarily create a new event loop in this thread to run our async functions
+        loop = asyncio.new_event_loop()
+        try:
+            # Generate article audio using our new async function
+            print("🎙️ Generating audio from article...")
+            speech_audio = loop.run_until_complete(
+                AudioComposer.generate_article_audio(article)
             )
-            print("✅ Audio generated and combined successfully")
+            duration = speech_audio.duration
 
-            composite_video = VideoComposer.create_composite_video(
-                bg_clip, overlay_clip, combined_audio, duration
-            )
+            # Validate input files
+            for path in [bg_image, bg_music, overlay_image]:
+                if not Path(path).is_file():
+                    raise FileNotFoundError(f"Required file not found: {path}")
 
-            composite_video.write_videofile(
-                output_video_path,
-                fps=VideoSettings.FPS,
-                codec=VideoSettings.VIDEO_CODEC,
-                audio_codec=VideoSettings.AUDIO_CODEC,
-                logger=None
-            )
+            # Ensure output directory exists
+            Path(output_video_path).parent.mkdir(parents=True, exist_ok=True)
+
+            # Create video with all components in one step
+            with AudioFileClip(bg_music) as music_audio, \
+                 ImageClip(bg_image) as bg_clip, \
+                 ImageClip(overlay_image) as overlay_clip:
+
+                # Configure & Create composite audio using our new async function
+                combined_audio = loop.run_until_complete(
+                    AudioComposer.create_composite_audio(
+                        speech_audio, music_audio, duration
+                    )
+                )
+                print("✅ Audio generated and combined successfully")
+
+                composite_video = VideoComposer.create_composite_video(
+                    bg_clip, overlay_clip, combined_audio, duration
+                )
+
+                composite_video.write_videofile(
+                    output_video_path,
+                    fps=VideoSettings.FPS,
+                    codec=VideoSettings.VIDEO_CODEC,
+                    audio_codec=VideoSettings.AUDIO_CODEC,
+                    logger=None
+                )
+        finally:
+            loop.close()
 
         print(f"✅ Overlay Video created successfully: {output_video_path}")
         return output_video_path

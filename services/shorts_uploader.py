@@ -12,6 +12,24 @@ from utils.metadata.metadata_utils import (
     generate_video_title
 )
 
+# Shared thread pool executor
+_upload_executor: Optional[ThreadPoolExecutor] = None
+_upload_executor_lock = asyncio.Lock()
+
+def get_upload_executor() -> ThreadPoolExecutor:
+    """Get or create the shared thread pool executor for uploads."""
+    global _upload_executor
+    if _upload_executor is None:
+        _upload_executor = ThreadPoolExecutor(max_workers=3)
+    return _upload_executor
+
+async def cleanup_upload_executor():
+    """Cleanup the shared executor."""
+    global _upload_executor
+    async with _upload_executor_lock:
+        if _upload_executor is not None:
+            _upload_executor.shutdown(wait=True)
+            _upload_executor = None
 
 async def upload_youtube_shorts(
     yt: Resource,
@@ -21,12 +39,12 @@ async def upload_youtube_shorts(
     hashtag: Optional[str] = None
 ) -> None:
     loop = asyncio.get_running_loop()
-    with ThreadPoolExecutor() as pool:
-        return await loop.run_in_executor(
-            pool,
-            _upload_youtube_shorts_sync,
-            yt, category, overlay_video_output, article, hashtag
-        )
+    executor = get_upload_executor()
+    return await loop.run_in_executor(
+        executor,
+        _upload_youtube_shorts_sync,
+        yt, category, overlay_video_output, article, hashtag
+    )
 
 def _upload_youtube_shorts_sync(
     yt: Resource,
