@@ -28,5 +28,5 @@ async def fetch_news_article(identifier: str, is_keyword: bool = False) -> list[
 
         return articles
     except Exception as e:
-        print(f"Error fetching news: {str(e)}")
+        print(f"Error fetching news for identifier '{identifier}' (is_keyword={is_keyword}): {str(e)}")
         raise
