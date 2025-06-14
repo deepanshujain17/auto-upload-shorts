@@ -16,24 +16,12 @@ from utils.metadata.metadata_utils import (
 _upload_executor: Optional[ThreadPoolExecutor] = None
 _upload_executor_lock = asyncio.Lock()
 
-# Semaphore to limit concurrent YouTube uploads
-# This helps prevent YouTube API rate limiting and quota issues
-_upload_semaphore: Optional[asyncio.Semaphore] = None
-
 def get_upload_executor() -> ThreadPoolExecutor:
     """Get or create the shared thread pool executor for uploads."""
     global _upload_executor
     if _upload_executor is None:
         _upload_executor = ThreadPoolExecutor(max_workers=3)
     return _upload_executor
-
-def get_upload_semaphore() -> asyncio.Semaphore:
-    """Get the semaphore that limits concurrent YouTube uploads."""
-    global _upload_semaphore
-    if _upload_semaphore is None:
-        # Limit to 3 concurrent uploads to prevent YouTube API rate limiting
-        _upload_semaphore = asyncio.Semaphore(3)
-    return _upload_semaphore
 
 async def cleanup_upload_executor():
     """Cleanup the shared executor."""
@@ -50,21 +38,13 @@ async def upload_youtube_shorts(
     article: dict,
     hashtag: Optional[str] = None
 ) -> None:
-    """Upload a video to YouTube Shorts with semaphore control."""
-    # Acquire the upload semaphore to limit concurrent uploads
-    upload_semaphore = get_upload_semaphore()
-    async with upload_semaphore:
-        print(f"🚦 Acquired upload semaphore for {category} video")
-        loop = asyncio.get_running_loop()
-        executor = get_upload_executor()
-        try:
-            return await loop.run_in_executor(
-                executor,
-                _upload_youtube_shorts_sync,
-                yt, category, overlay_video_output, article, hashtag
-            )
-        finally:
-            print(f"🚦 Released upload semaphore for {category} video")
+    loop = asyncio.get_running_loop()
+    executor = get_upload_executor()
+    return await loop.run_in_executor(
+        executor,
+        _upload_youtube_shorts_sync,
+        yt, category, overlay_video_output, article, hashtag
+    )
 
 def _upload_youtube_shorts_sync(
     yt: Resource,

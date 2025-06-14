@@ -18,7 +18,7 @@ async def process_article(yt, category: str, article: dict, hashtag: str = None)
     try:
         # Create the overlay video
         overlay_video_output = await create_overlay_video_output(category, article)
-        # Upload to YouTube Shorts (semaphore control handled within the function)
+        # Upload to YouTube Shorts
         await upload_youtube_shorts(yt, category, overlay_video_output, article, hashtag)
     except Exception as e:
         print(f"Error processing article: {str(e)}")
@@ -27,40 +27,24 @@ async def process_article(yt, category: str, article: dict, hashtag: str = None)
 
 async def process_categories(yt) -> None:
     """Process news for each category and upload to YouTube asynchronously."""
-    from utils.processing.worker_pool import get_worker_pool
     try:
-        # Get the shared worker pool
-        video_pool = await get_worker_pool()
-
         async def process_single_category(category):
             try:
                 print(f"\n\n\n📌 Processing category: {category}")
                 # Fetch the news articles data
                 articles = await fetch_news_article(category)
 
-                # Submit each article processing task to the video pool
-                for i, article in enumerate(articles):
-                    task_id = f"{category}_{i}"
-                    await video_pool.submit(
-                        task_id,
-                        process_article(yt, category, article)
-                    )
+                # Process articles concurrently
+                tasks = [process_article(yt, category, article) for article in articles]
+                await asyncio.gather(*tasks)
 
-                print(f"✅ Submitted all articles for category: {category}")
+                print(f"✅ Successfully processed category: {category}")
             except Exception as e:
                 print(f"⚠️ Error processing category {category}: {str(e)}")
 
-        # Process all categories concurrently (control happens in the pool)
+        # Create tasks for all categories to run concurrently
         category_tasks = [process_single_category(category) for category in news_settings.categories]
         await asyncio.gather(*category_tasks)
-
-        # Wait for all video processing and uploads to complete
-        print("\n⏳ Waiting for all video processing and uploads to complete...")
-        results = await video_pool.wait_all()
-
-        # Count successful videos
-        successful = sum(1 for r in results.values() if r is not None)
-        print(f"\n✅ Completed {successful}/{len(results)} videos successfully")
 
     except Exception as e:
         print(f"❌ Fatal error in category processing: {str(e)}")
@@ -69,7 +53,6 @@ async def process_categories(yt) -> None:
 
 async def process_keywords(yt) -> None:
     """Process news for trending hashtags and manual queries asynchronously."""
-    from utils.processing.worker_pool import get_worker_pool
     try:
         # Get trending hashtags and combine with manual queries
         trending_hashtags = await get_trending_hashtags()
@@ -87,9 +70,6 @@ async def process_keywords(yt) -> None:
         for idx, tag in enumerate(hashtags, 1):
             print(f"{idx}. {tag} ({hashtag_sources[tag]})")
 
-        # Get the shared worker pool
-        video_pool = await get_worker_pool()
-
         # Process all hashtags concurrently
         async def process_single_hashtag(hashtag):
             try:
@@ -99,15 +79,11 @@ async def process_keywords(yt) -> None:
                 # Fetch and process articles
                 articles = await fetch_news_article(query, is_keyword=True)
 
-                # Submit each article processing task to the video pool
-                for i, article in enumerate(articles):
-                    task_id = f"{hashtag}_{i}"
-                    await video_pool.submit(
-                        task_id,
-                        process_article(yt, query, article, hashtag)
-                    )
+                # Process articles concurrently
+                tasks = [process_article(yt, query, article, hashtag) for article in articles]
+                await asyncio.gather(*tasks)
 
-                print(f"✅ Submitted all articles for hashtag: {hashtag}")
+                print(f"✅ Successfully processed hashtag: {hashtag}")
             except Exception as e:
                 print(f"⚠️ Error processing hashtag {hashtag}: {str(e)}")
 
@@ -115,16 +91,8 @@ async def process_keywords(yt) -> None:
         hashtag_tasks = [process_single_hashtag(hashtag) for hashtag in hashtags]
         await asyncio.gather(*hashtag_tasks)
 
-        # Wait for all video processing and uploads to complete
-        print("\n⏳ Waiting for all video processing and uploads to complete...")
-        results = await video_pool.wait_all()
-
-        # Count successful videos
-        successful = sum(1 for r in results.values() if r is not None)
-        print(f"\n✅ Completed {successful}/{len(results)} videos successfully")
-
     except Exception as e:
-        print(f"❌ Fatal error in hashtag processing: {str(e)}")
+        print(f"�� Fatal error in hashtag processing: {str(e)}")
         raise
 
 
