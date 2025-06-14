@@ -1,4 +1,6 @@
 from typing import Optional
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 from googleapiclient.discovery import Resource
 
@@ -11,7 +13,22 @@ from utils.metadata.metadata_utils import (
 )
 
 
-def upload_youtube_shorts(
+async def upload_youtube_shorts(
+    yt: Resource,
+    category: str,
+    overlay_video_output: str,
+    article: dict,
+    hashtag: Optional[str] = None
+) -> None:
+    loop = asyncio.get_running_loop()
+    with ThreadPoolExecutor() as pool:
+        return await loop.run_in_executor(
+            pool,
+            _upload_youtube_shorts_sync,
+            yt, category, overlay_video_output, article, hashtag
+        )
+
+def _upload_youtube_shorts_sync(
     yt: Resource,
     category: str,
     overlay_video_output: str,

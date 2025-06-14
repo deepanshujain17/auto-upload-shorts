@@ -1,4 +1,6 @@
 from pathlib import Path
+import asyncio
+from concurrent.futures import ThreadPoolExecutor
 
 from moviepy.audio.io.AudioFileClip import AudioFileClip
 from moviepy.video.VideoClip import ImageClip
@@ -10,7 +12,13 @@ from utils.web.browser_utils import render_card_to_image
 from utils.web.html_utils import create_html_card
 
 
-def _generate_overlay_image(category: str, article: dict) -> str:
+async def _generate_overlay_image(category: str, article: dict) -> str:
+    loop = asyncio.get_running_loop()
+    with ThreadPoolExecutor() as pool:
+        return await loop.run_in_executor(pool, _generate_overlay_image_sync, category, article)
+
+
+def _generate_overlay_image_sync(category: str, article: dict) -> str:
     """Generate the news card overlay image.
 
     Args:
@@ -44,7 +52,13 @@ def _generate_overlay_image(category: str, article: dict) -> str:
         raise
 
 
-def create_overlay_video_output(category: str, article: dict) -> str:
+async def create_overlay_video_output(category: str, article: dict) -> str:
+    loop = asyncio.get_running_loop()
+    with ThreadPoolExecutor() as pool:
+        return await loop.run_in_executor(pool, create_overlay_video_output_sync, category, article)
+
+
+def create_overlay_video_output_sync(category: str, article: dict) -> str:
     """Create a complete video with news overlay and audio.
 
     Args:
@@ -59,7 +73,7 @@ def create_overlay_video_output(category: str, article: dict) -> str:
     """
     try:
         # Generate the overlay image
-        overlay_image = _generate_overlay_image(category, article)
+        overlay_image = _generate_overlay_image_sync(category, article)
 
         # Get output path
         output_video_path = PathSettings.get_final_video(category)
