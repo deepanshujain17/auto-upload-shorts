@@ -14,8 +14,7 @@ from utils.web.html_utils import create_html_card
 
 async def _generate_overlay_image(category: str, article: dict) -> str:
     loop = asyncio.get_running_loop()
-    with ThreadPoolExecutor() as pool:
-        return await loop.run_in_executor(pool, _generate_overlay_image_sync, category, article)
+    return await loop.run_in_executor(_shared_executor, _generate_overlay_image_sync, category, article)
 
 
 def _generate_overlay_image_sync(category: str, article: dict) -> str:
