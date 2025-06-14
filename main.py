@@ -70,8 +70,8 @@ async def process_keywords(yt) -> None:
         for idx, tag in enumerate(hashtags, 1):
             print(f"{idx}. {tag} ({hashtag_sources[tag]})")
 
-        # Process each hashtag
-        for hashtag in hashtags:
+        # Process all hashtags concurrently
+        async def process_single_hashtag(hashtag):
             try:
                 query = normalize_hashtag(hashtag) if hashtag_sources[hashtag] == "trending" else hashtag
                 print(f"\n\n\n🔍 Processing hashtag: {hashtag}. Converted query: {query}")
@@ -86,10 +86,13 @@ async def process_keywords(yt) -> None:
                 print(f"✅ Successfully processed hashtag: {hashtag}")
             except Exception as e:
                 print(f"⚠️ Error processing hashtag {hashtag}: {str(e)}")
-                print("Moving to next hashtag...")
-                continue
+
+        # Create tasks for all hashtags to run concurrently
+        hashtag_tasks = [process_single_hashtag(hashtag) for hashtag in hashtags]
+        await asyncio.gather(*hashtag_tasks)
+
     except Exception as e:
-        print(f"❌ Fatal error in hashtag processing: {str(e)}")
+        print(f"�� Fatal error in hashtag processing: {str(e)}")
         raise
 
 

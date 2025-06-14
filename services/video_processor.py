@@ -21,7 +21,11 @@ def get_executor() -> ThreadPoolExecutor:
     """Get or create the shared thread pool executor."""
     global _shared_executor
     if _shared_executor is None:
-        _shared_executor = ThreadPoolExecutor(max_workers=3)
+        # Increase number of workers for better parallelism
+        # Using CPU count or slightly higher for IO-bound portions
+        import multiprocessing
+        cpu_count = multiprocessing.cpu_count()
+        _shared_executor = ThreadPoolExecutor(max_workers=max(cpu_count * 2, 8))
     return _shared_executor
 
 async def cleanup_executor():
