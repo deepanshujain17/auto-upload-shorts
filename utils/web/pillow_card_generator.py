@@ -269,6 +269,8 @@ def generate_news_card(article, output_path):
         title_bold_font = get_font(HTMLSettings.FONT_FAMILY, title_size, bold=True)
         meta_bold_font = get_font(HTMLSettings.FONT_FAMILY, meta_size, bold=True)
 
+        print(f"Fonts loaded - Title: {title_bold_font}, Description: {desc_font}, Meta: {meta_font}")
+
         current_y = 0
 
         # Add image if available
