@@ -66,6 +66,7 @@ class TextProcessor:
             text_parts.append(cls.clean_content(content))
 
         final_text = ". ".join(text_parts)
+        final_text = "Jasprit Bumrah is back."
         final_text = cls.add_breaks_to_punctuation(final_text)
         print(f"Generated text for audio: {final_text}")
 

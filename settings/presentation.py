@@ -6,4 +6,4 @@ class HTMLSettings:
     META_FONT_SIZE = 16  # Doubled from 12 to maintain proportion
     TITLE_MARGIN_TOP = 15  # Increased from 15 to maintain proportion
     BORDER_RADIUS = 8  # Increased from 8 to maintain proportion
-    FONT_FAMILY = "Arial, sans-serif"  # For Hindi: "Noto Sans Devanagari, Mangal, sans-serif"
+    FONT_FAMILY = "Georgia, Times New Roman, serif"  # For Hindi: "Noto Sans Devanagari, Mangal, sans-serif"

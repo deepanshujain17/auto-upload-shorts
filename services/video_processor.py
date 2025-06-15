@@ -141,7 +141,8 @@ def create_overlay_video_output_sync(category: str, article: dict) -> str:
             speech_audio = loop.run_until_complete(
                 AudioComposer.generate_article_audio(article)
             )
-            duration = speech_audio.duration
+            # duration = speech_audio.duration
+            duration = 2
 
             # Validate input files
             for path in [bg_image, bg_music, overlay_image]:
