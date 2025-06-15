@@ -320,7 +320,7 @@ def generate_news_card(article, output_path):
         draw.text((source_pos, current_y), source, font=meta_font, fill=(128, 128, 128))
 
         # Draw separator and published date
-        separator = " | "
+        separator = "       |       "
         sep_pos = source_pos + get_text_width(meta_font, source)
         draw.text((sep_pos, current_y), separator, font=meta_font, fill=(128, 128, 128))
 
