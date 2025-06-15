@@ -3,7 +3,7 @@ class HTMLSettings:
     CARD_HEIGHT = 1440
     TITLE_FONT_SIZE = 26  # Doubled from 28 to maintain proportion with wider card
     DESCRIPTION_FONT_SIZE = 18  # Doubled from 18 to maintain proportion
-    META_FONT_SIZE = 14  # Doubled from 12 to maintain proportion
+    META_FONT_SIZE = 16  # Doubled from 12 to maintain proportion
     TITLE_MARGIN_TOP = 15  # Increased from 15 to maintain proportion
     BORDER_RADIUS = 8  # Increased from 8 to maintain proportion
     FONT_FAMILY = "Arial, sans-serif"  # For Hindi: "Noto Sans Devanagari, Mangal, sans-serif"
