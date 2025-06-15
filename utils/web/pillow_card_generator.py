@@ -296,7 +296,7 @@ def generate_news_card(article, output_path):
 
         # Add title with spacing
         current_y += HTMLSettings.TITLE_MARGIN_TOP
-        title_wrap_width = int((card_width - 5 * content_padding) / (title_size * 0.5))  # Adjusted wrapping factor
+        title_wrap_width = int((card_width - 2 * content_padding) / (title_size * 0.5))  # Adjusted wrapping factor
         title_lines = textwrap.wrap(title, width=title_wrap_width)
         line_spacing = int(title_size * 0.1)
         for line in title_lines:
@@ -306,7 +306,7 @@ def generate_news_card(article, output_path):
         current_y += 30  # Space after title
 
         # Add description with spacing
-        desc_wrap_width = int((card_width - 8 * content_padding) / (desc_size * 0.4))  # Adjusted wrapping factor
+        desc_wrap_width = int((card_width - 5 * content_padding) / (desc_size * 0.4))  # Adjusted wrapping factor
         desc_lines = textwrap.wrap(description, width=desc_wrap_width)
         line_spacing = int(desc_size * 0.3)
         for line in desc_lines:
