@@ -13,7 +13,9 @@ async def get_session() -> aiohttp.ClientSession:
     """Get or create the shared aiohttp ClientSession."""
     global _session
     if _session is None or _session.closed:
-        _session = aiohttp.ClientSession()
+        # Create a ClientSession with SSL verification disabled to handle certificate issues
+        ssl_context = False  # This disables SSL verification
+        _session = aiohttp.ClientSession(connector=aiohttp.TCPConnector(ssl=ssl_context))
     return _session
 
 async def close_session():
