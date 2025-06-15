@@ -47,7 +47,7 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
         "sortby": news_settings.sort_by,
     }
 
-    max_attempts = 3
+    max_attempts = 4
     # Define a strict timeout to prevent hanging requests
     timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
 
@@ -72,7 +72,7 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
 
                 # Handle rate limiting with exponential backoff
                 if status == 429:  # Too Many Requests
-                    if attempt < max_attempts - 1:  # Not the last attempt
+                    if attempt < max_attempts:  # Not the last attempt
                         wait_time = min(2 ** attempt * 2, 10)  # Max 10 seconds wait
                         print(f"⏳ Rate limited for {category}. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
                         # Use a timer to verify the sleep is working
@@ -181,7 +181,7 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
         "sortby": news_settings.sort_by,
     }
 
-    max_attempts = 3
+    max_attempts = 4
     timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
 
     for attempt in range(max_attempts):
@@ -204,7 +204,7 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
 
                 # Handle rate limiting with exponential backoff
                 if status == 429:
-                    if attempt < max_attempts - 1:  # Not the last attempt
+                    if attempt < max_attempts:  # Not the last attempt
                         wait_time = min(2 ** attempt * 2, 10)  # Max 10 seconds wait
                         print(f"⏳ Rate limited for query '{query}'. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
                         sleep_start = time.time()
