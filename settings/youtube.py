@@ -1,5 +1,5 @@
 class YouTubeSettings:
-    DEFAULT_PRIVACY = "private"  # Options: "public", "private", "unlisted"
+    DEFAULT_PRIVACY = "public"  # Options: "public", "private", "unlisted"
     ARTICLE_MAX_TAGS = 3
     MAX_TAGS = 9
 
