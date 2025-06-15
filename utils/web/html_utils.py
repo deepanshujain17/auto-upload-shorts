@@ -53,7 +53,7 @@ def create_html_card(article, output_path="temp.html"):
                 font-family: {font_family};
                 background-color: #f9f9f9;
                 margin: 0;
-                padding: 20px;
+                padding: 0px;
                 display: flex;
                 justify-content: center;
               }}

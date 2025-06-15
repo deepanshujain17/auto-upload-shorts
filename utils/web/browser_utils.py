@@ -14,7 +14,7 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.chrome.service import Service
 from selenium.common.exceptions import WebDriverException
 from webdriver_manager.chrome import ChromeDriverManager
-from settings import VideoSettings
+from settings.media import BrowserSettings
 
 
 def render_card_to_image(html_file: str, output_image: str) -> None:
@@ -41,7 +41,7 @@ def render_card_to_image(html_file: str, output_image: str) -> None:
         # Configure Chrome options for headless operation
         options = Options()
         options.add_argument('--headless')
-        options.add_argument(f'--window-size={VideoSettings.WINDOW_WIDTH},{VideoSettings.WINDOW_HEIGHT}')
+        options.add_argument(f'--window-size={BrowserSettings.WINDOW_WIDTH},{BrowserSettings.WINDOW_HEIGHT}')
 
         # Add unique user data directory
         temp_dir = tempfile.mkdtemp()
@@ -57,7 +57,7 @@ def render_card_to_image(html_file: str, output_image: str) -> None:
 
         # Load and render the HTML file
         driver.get(file_path)
-        sleep(VideoSettings.BROWSER_WAIT_TIME)  # Wait for the page to render completely
+        sleep(BrowserSettings.BROWSER_WAIT_TIME)  # Wait for the page to render completely
 
         # Create output directory if it doesn't exist
         os.makedirs(os.path.dirname(output_image), exist_ok=True)
