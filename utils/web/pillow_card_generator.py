@@ -17,43 +17,54 @@ from settings import HTMLSettings
 
 def get_font(font_name, size, bold=False):
     """Get a font with fallbacks to ensure consistent rendering across environments."""
-    # Extract the first font name from font family string (e.g., "Arial, sans-serif" -> "Arial")
-    primary_font = font_name.split(',')[0].strip()
-
-    # For bold fonts, try to find a bold variant
-    font_name_to_try = f"{primary_font}-Bold" if bold else primary_font
-
     try:
-        # First try: direct loading using font name
-        return ImageFont.truetype(font_name_to_try, size)
-    except (IOError, OSError):
-        # Second try: common system locations based on OS
-        try:
-            # For different OS platforms
-            if sys.platform == "win32":
-                font_path = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts',
-                                        'Arial Bold.ttf' if bold else 'Arial.ttf')
-            elif sys.platform == "darwin":
-                font_path = '/System/Library/Fonts/Supplemental/Arial Bold.ttf' if bold else '/System/Library/Fonts/Supplemental/Arial.ttf'
-            else:
-                # Linux
-                font_path = '/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf' if bold else '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf'
+        # First try to load exactly as specified in settings
+        primary_font = font_name.split(',')[0].strip()  # e.g., "Arial" from "Arial, sans-serif"
 
-            return ImageFont.truetype(font_path, size)
-        except (IOError, OSError):
-            # Third try: common fallback fonts
+        # Check if we're in a CI environment
+        is_ci = os.environ.get('CI', 'false').lower() == 'true'
+        if is_ci:
+            print(f"CI environment detected, using system fonts with size {size}")
+            # On CI systems, use system fonts that are likely to be available
             try:
-                fallback = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
-                return ImageFont.truetype(fallback, size)
+                return ImageFont.truetype("DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf", size)
             except:
-                # Check if we're in a CI environment
-                is_ci = os.environ.get('CI', 'false').lower() == 'true'
-                if is_ci:
-                    print(f"Warning: Using default font in CI environment with size {size}")
-                    return ImageFont.load_default()  # Last resort
-                else:
-                    print(f"Warning: Could not load font '{primary_font}'. Using default font.")
-                    return ImageFont.load_default()  # Last resort
+                # In CI, fall back to Liberation Sans (available on Ubuntu)
+                try:
+                    return ImageFont.truetype("LiberationSans-Bold.ttf" if bold else "LiberationSans-Regular.ttf", size)
+                except:
+                    print("CI environment: Could not load system fonts, using default")
+                    return ImageFont.load_default()
+        else:
+            # In non-CI environments (local), attempt to load the specified font
+            if bold:
+                # Try different bold variants
+                for bold_variant in [f"{primary_font}-Bold", f"{primary_font} Bold", f"{primary_font}Bold"]:
+                    try:
+                        return ImageFont.truetype(bold_variant, size)
+                    except:
+                        pass
+
+            # Try regular variant or as fallback for bold
+            try:
+                return ImageFont.truetype(primary_font, size)
+            except:
+                # Fall back to system-specific common fonts
+                if sys.platform == "darwin":  # macOS
+                    font_path = '/System/Library/Fonts/Helvetica.ttc'
+                elif sys.platform == "win32":  # Windows
+                    font_path = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts', 'arial.ttf')
+                else:  # Linux and others
+                    font_path = '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf'
+
+                try:
+                    return ImageFont.truetype(font_path, size)
+                except:
+                    print(f"Could not load system font, using default")
+                    return ImageFont.load_default()
+    except Exception as e:
+        print(f"Error loading font: {str(e)}")
+        return ImageFont.load_default()
 
 
 def download_image(url):
@@ -295,7 +306,7 @@ def generate_news_card(article, output_path):
         current_y += 30  # Space after title
 
         # Add description with spacing
-        desc_wrap_width = int((card_width - 2 * content_padding) / (desc_size * 0.4))  # Adjusted wrapping factor
+        desc_wrap_width = int((card_width - 5 * content_padding) / (desc_size * 0.4))  # Adjusted wrapping factor
         desc_lines = textwrap.wrap(description, width=desc_wrap_width)
         line_spacing = int(desc_size * 0.3)
         for line in desc_lines:
