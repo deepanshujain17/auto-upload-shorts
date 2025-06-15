@@ -20,10 +20,10 @@ class AudioSettings:
 
     # AWS Polly voice settings
     DEFAULT_VOICE_ID = "Joanna"
-    DEFAULT_ENGINE = "neural"
+    DEFAULT_ENGINE = "generative"
     DEFAULT_TEXT_TYPE = "ssml"
 
     # SSML settings
-    PROSODY_RATE = "90%"
+    PROSODY_RATE = "100%"
     PROSODY_VOLUME = "loud"
     PROSODY_PITCH = "0%"
