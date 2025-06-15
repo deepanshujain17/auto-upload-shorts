@@ -1,6 +1,7 @@
 # Standard library imports
 import os
 import sys
+import asyncio
 
 # Local imports
 from core.trends.trends_api_client import get_trending_hashtags
@@ -12,96 +13,95 @@ from settings import news_settings, PathSettings, TrendingSettings
 from utils.commons import normalize_hashtag
 
 
-def process_categories(yt) -> None:
-    """
-    Process news for each category and upload to YouTube.
-
-    Args:
-        yt: Authenticated YouTube API client
-    """
+async def process_article(yt, category: str, article: dict, hashtag: str = None) -> None:
+    """Process a single article asynchronously."""
     try:
-        # Process each category
-        for category in news_settings.categories:
+        # Create the overlay video
+        overlay_video_output = await create_overlay_video_output(category, article)
+        # Upload to YouTube Shorts
+        await upload_youtube_shorts(yt, category, overlay_video_output, article, hashtag)
+    except Exception as e:
+        print(f"Error processing article: {str(e)}")
+        raise
+
+
+async def process_categories(yt) -> None:
+    """Process news for each category and upload to YouTube asynchronously."""
+    try:
+        async def process_single_category(category):
             try:
                 print(f"\n\n\n📌 Processing category: {category}")
+                # Fetch the news articles data
+                articles = await fetch_news_article(category)
 
-                # 1. Fetch the news articles data
-                articles = fetch_news_article(category)
-
-                for article in articles:
-                    # 2. Create the overlay video (includes HTML and image generation)
-                    overlay_video_output = create_overlay_video_output(category, article)
-
-                    # 3. Upload the video to YouTube Shorts
-                    upload_youtube_shorts(yt, category, overlay_video_output, article)
+                # Process articles concurrently
+                tasks = [process_article(yt, category, article) for article in articles]
+                await asyncio.gather(*tasks)
 
                 print(f"✅ Successfully processed category: {category}")
-
             except Exception as e:
                 print(f"⚠️ Error processing category {category}: {str(e)}")
-                print("Moving to next category...")
-                continue
+
+        # Create tasks for all categories to run concurrently
+        category_tasks = [process_single_category(category) for category in news_settings.categories]
+        await asyncio.gather(*category_tasks)
 
     except Exception as e:
         print(f"❌ Fatal error in category processing: {str(e)}")
         raise
 
 
-def process_keywords(yt) -> None:
-    """
-    Process news for trending hashtags and manual queries, then upload to YouTube.
-
-    Args:
-        yt: Authenticated YouTube API client
-    """
+async def process_keywords(yt) -> None:
+    """Process news for trending hashtags and manual queries asynchronously."""
     try:
         # Get trending hashtags and combine with manual queries
-        trending_hashtags = get_trending_hashtags()
+        trending_hashtags = await get_trending_hashtags()
         manual_hashtags = TrendingSettings.get_manual_hashtag_queries()
-        hashtags = list(dict.fromkeys(manual_hashtags + trending_hashtags))  # Remove duplicates while preserving order
+        hashtags = list(dict.fromkeys(manual_hashtags + trending_hashtags))
 
         if not hashtags:
             print("No hashtags found to process")
             return
 
         print(f"\n📈 Found {len(hashtags)} hashtags to process:")
+        hashtag_sources = {tag: "manual" if tag in manual_hashtags else "trending"
+                          for tag in hashtags}
 
-        hashtag_sources = {}
         for idx, tag in enumerate(hashtags, 1):
-            source = "manual" if tag in manual_hashtags else "trending"
-            hashtag_sources[tag] = source
-            print(f"{idx}. {tag} ({source})")
+            print(f"{idx}. {tag} ({hashtag_sources[tag]})")
 
-        # Process each hashtag
-        for hashtag in hashtags:
+        # Process all hashtags concurrently
+        async def process_single_hashtag(hashtag):
             try:
                 query = normalize_hashtag(hashtag) if hashtag_sources[hashtag] == "trending" else hashtag
                 print(f"\n\n\n🔍 Processing hashtag: {hashtag}. Converted query: {query}")
 
-                # 1. Generate news card with is_keyword=True
-                articles = fetch_news_article(query, is_keyword=True)
+                # Fetch and process articles
+                articles = await fetch_news_article(query, is_keyword=True)
 
-                for article in articles:
-                    # 2. Create the overlay video (includes HTML and image generation)
-                    overlay_video_output = create_overlay_video_output(query, article)
-
-                    # 3. Upload the video to YouTube Shorts
-                    upload_youtube_shorts(yt, query, overlay_video_output, article, hashtag)
+                # Process articles concurrently
+                tasks = [process_article(yt, query, article, hashtag) for article in articles]
+                await asyncio.gather(*tasks)
 
                 print(f"✅ Successfully processed hashtag: {hashtag}")
-
             except Exception as e:
                 print(f"⚠️ Error processing hashtag {hashtag}: {str(e)}")
-                print("Moving to next hashtag...")
-                continue
+
+        # Create tasks for all hashtags to run concurrently
+        hashtag_tasks = [process_single_hashtag(hashtag) for hashtag in hashtags]
+        await asyncio.gather(*hashtag_tasks)
 
     except Exception as e:
-        print(f"❌ Fatal error in hashtag processing: {str(e)}")
+        print(f"�� Fatal error in hashtag processing: {str(e)}")
         raise
 
 
-def main() -> None:
-    """Main entry point for the script."""
+async def async_main() -> None:
+    """Async main entry point for the script."""
+    from core.news.news_api_client import close_session
+    from services.video_processor import cleanup_executor
+    from services.shorts_uploader import cleanup_upload_executor
+
     try:
         # Create output directory if it doesn't exist
         os.makedirs(PathSettings.OUTPUT_DIR, exist_ok=True)
@@ -115,7 +115,7 @@ def main() -> None:
             sys.exit(1)
 
         try:
-            news_settings.country = country_arg  # Using the Pydantic model's setter
+            news_settings.country = country_arg
         except ValueError as e:
             print(f"Invalid country code: {country_arg}. {str(e)}")
             sys.exit(1)
@@ -127,11 +127,11 @@ def main() -> None:
         # Run the specified process
         if process_type in ["categories", "all"]:
             print(f"\n🎯 Starting category processing for country: {news_settings.country}...")
-            process_categories(yt)
+            await process_categories(yt)
 
         if process_type in ["keywords", "all"]:
             print(f"\n🎯 Starting keyword processing for country: {news_settings.country}...")
-            process_keywords(yt)
+            await process_keywords(yt)
 
         print("\n✨ All processing completed successfully!")
 
@@ -141,7 +141,12 @@ def main() -> None:
     except Exception as e:
         print(f"\n❌ Fatal error: {str(e)}")
         sys.exit(1)
+    finally:
+        # Clean up resources
+        await close_session()
+        await cleanup_executor()
+        await cleanup_upload_executor()
 
 
 if __name__ == "__main__":
-    main()
+    asyncio.run(async_main())

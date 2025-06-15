@@ -1,14 +1,13 @@
 import re
-
-import requests
+import aiohttp
 from bs4 import BeautifulSoup
 
 from settings import TrendingSettings
 
 
-def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
+async def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
     """
-    Fetch trending hashtags from trends24.in based on country settings
+    Asynchronously fetch trending hashtags from trends24.in based on country settings
     Args:
         limit: Maximum number of hashtags to return (default: 50)
     Returns:
@@ -19,23 +18,29 @@ def get_trending_hashtags(limit=TrendingSettings.DEFAULT_LIMIT):
     print(f"Fetching trending hashtags from: {trends_url}")
 
     try:
-        res = requests.get(trends_url, headers=headers)
-        res.raise_for_status()  # Raise exception for bad status codes
-        soup = BeautifulSoup(res.text, "html.parser")
+        async with aiohttp.ClientSession() as session:
+            async with session.get(trends_url, headers=headers) as response:
+                response.raise_for_status()  # Raise exception for bad status codes
+                html_content = await response.text()
 
+        soup = BeautifulSoup(html_content, "html.parser")
         trends = soup.select("ol.trend-card__list li span.trend-name a.trend-link")
         unique_hashtags = set()
 
         pattern = re.compile(r'^[\w\s#]+$')  # letters, digits, underscore, spaces, # only
 
         for tag in trends[:limit]:
-            text = tag.text.strip()
-            if text.startswith("#") and pattern.match(text):
-                unique_hashtags.add(text)
+            tag_text = tag.get_text().strip()
+            if pattern.match(tag_text):  # Only add if matches pattern
+                unique_hashtags.add(tag_text)
 
-        # Convert set back to list and apply max limit
-        return list(unique_hashtags)[:TrendingSettings.MAX_HASHTAGS]
+        hashtag_list = list(unique_hashtags)
+        print(f"Found {len(hashtag_list)} valid trending hashtags")
+        return hashtag_list
 
-    except requests.RequestException as e:
-        print(f"Error fetching trending hashtags: {e}")
+    except aiohttp.ClientError as e:
+        print(f"Error fetching trending hashtags: {str(e)}")
+        return []
+    except Exception as e:
+        print(f"Unexpected error while fetching trending hashtags: {str(e)}")
         return []
