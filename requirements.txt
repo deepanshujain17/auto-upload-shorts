@@ -14,6 +14,7 @@ beautifulsoup4>=4.12.0
 # Media processing
 moviepy>=1.0.3
 pydub>=0.25.1
+Pillow>=10.0.0
 
 # Template rendering
 Jinja2>=3.1.2
