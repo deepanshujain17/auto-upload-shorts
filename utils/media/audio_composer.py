@@ -19,7 +19,9 @@ def get_audio_executor() -> ThreadPoolExecutor:
     """Get or create the shared thread pool executor for audio processing."""
     global _audio_executor
     if _audio_executor is None:
-        _audio_executor = ThreadPoolExecutor(max_workers=3)
+        import multiprocessing
+        cpu_count = multiprocessing.cpu_count()
+        _audio_executor = ThreadPoolExecutor(max_workers=max(cpu_count * 2, 8))
     return _audio_executor
 
 async def cleanup_audio_executor():

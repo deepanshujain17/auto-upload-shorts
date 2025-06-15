@@ -23,7 +23,9 @@ def get_upload_executor() -> ThreadPoolExecutor:
     if _upload_executor is None:
         # YouTube API operations are network-bound but can be quite heavy
         # Use a smaller pool to avoid overwhelming the API
-        _upload_executor = ThreadPoolExecutor(max_workers=3)
+        import multiprocessing
+        cpu_count = multiprocessing.cpu_count()
+        _upload_executor = ThreadPoolExecutor(max_workers=max(cpu_count * 2, 8))
     return _upload_executor
 
 async def cleanup_upload_executor():
