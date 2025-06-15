@@ -27,10 +27,11 @@ async def close_session():
 async def get_category_news(category=None) -> List[Dict[str, Any]]:
     """
     Asynchronously fetch news articles from GNews API for given categories
+    Implements exponential backoff for rate limiting (HTTP 429).
 
     Raises:
         ValueError: If no articles are found for the given category
-        aiohttp.ClientError: If there's a network error
+        aiohttp.ClientError: If there's a network error after all retries
     """
     print(f"📰 Fetching news for category: {category}")
     from_time = get_zulu_time_minus(news_settings.minutes_ago)
@@ -45,24 +46,49 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
         "sortby": news_settings.sort_by,
     }
 
-    try:
-        session = await get_session()
-        async with session.get(news_settings.top_headlines_endpoint, params=params) as response:
-            response.raise_for_status()
-            data = await response.json()
-            articles = data.get("articles", [])
-            if articles:
-                result = articles[:news_settings.max_articles]
-                print(f"✅ Successfully fetched article for {category}")
-                return result
-            else:
-                raise ValueError(f"🔍 No articles found for category: {category}")
-    except aiohttp.ClientError as e:
-        print(f"Network error while fetching {category}: {str(e)}")
-        raise
-    except Exception as e:
-        print(f"Unexpected error while fetching {category}: {str(e)}")
-        raise
+    max_attempts = 3
+    for attempt in range(max_attempts):
+        try:
+            session = await get_session()
+            async with session.get(news_settings.top_headlines_endpoint, params=params) as response:
+                # Handle rate limiting with exponential backoff
+                if response.status == 429:
+                    wait_time = 2 ** attempt * 2  # 2, 4, 8 seconds
+                    print(f"⏳ Rate limited for {category}. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
+                    await asyncio.sleep(wait_time)
+                    continue
+
+                response.raise_for_status()
+                data = await response.json()
+                articles = data.get("articles", [])
+                if articles:
+                    result = articles[:news_settings.max_articles]
+                    print(f"✅ Successfully fetched article for {category}")
+                    return result
+                else:
+                    raise ValueError(f"🔍 No articles found for category: {category}")
+        except aiohttp.ClientResponseError as e:
+            if e.status == 429:  # Too Many Requests
+                if attempt < max_attempts - 1:  # Not the last attempt
+                    wait_time = 2 ** attempt * 2
+                    print(f"⏳ Rate limited for {category}. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
+                    await asyncio.sleep(wait_time)
+                    continue
+            print(f"Network error while fetching {category}: {e.status}, message='{e.message}', url='{e.request_info.url}'")
+            raise
+        except aiohttp.ClientError as e:
+            if attempt == max_attempts - 1:  # Last attempt
+                print(f"Network error while fetching {category}: {str(e)}")
+                raise
+            wait_time = 2 ** attempt * 2
+            print(f"⚠️ Network error on attempt {attempt + 1}/{max_attempts} for {category}. Waiting {wait_time} seconds before retry...")
+            await asyncio.sleep(wait_time)
+        except Exception as e:
+            print(f"Unexpected error while fetching {category}: {str(e)}")
+            raise
+
+    # If we get here, all retries failed
+    raise aiohttp.ClientError(f"Failed to fetch news for {category} after {max_attempts} attempts")
 
 
 async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
