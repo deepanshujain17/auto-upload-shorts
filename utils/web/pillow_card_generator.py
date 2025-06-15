@@ -8,6 +8,7 @@ from io import BytesIO
 from datetime import datetime, timezone, timedelta
 import textwrap
 import requests
+import re  # Added for robust URL modification
 
 # Third-party imports
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
@@ -21,46 +22,143 @@ def download_image(url):
         headers = {
             'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
             'Referer': 'https://www.google.com/',  # Common referrer
-            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+            'Accept': 'image/jpeg,image/png,image/webp,*/*',  # Explicitly exclude AVIF format
         }
 
-        response = requests.get(url, stream=True, timeout=10, headers=headers)
+        # For TOI URLs, modify to request JPEG instead of AVIF
+        original_url = url
+        if 'toiimg.com' in url:
+            # Clean up and standardize the URL for Times of India images
+            url = re.sub(r'resizemode-\d+', 'resizemode-4', url)
+            url = re.sub(r'quality-\d+', 'quality-100', url)
+
+            # Remove problematic parameters that might affect image rendering
+            problematic_params = ['overlay-toi_sw', 'pt-32', 'y_pad-40']
+            for param in problematic_params:
+                if param in url:
+                    url = re.sub(fr'{param}[^,/]*', '', url)
+
+            # Clean up consecutive commas resulting from parameter removal
+            url = re.sub(r',+', ',', url)
+            url = url.replace(',.jpg', '.jpg').replace(',.jpeg', '.jpeg')
+
+            # Ensure URL ends with .jpg extension
+            if not url.lower().endswith(('.jpg', '.jpeg', '.png')):
+                url = url + '.jpg'
+
+            print(f"Modified TOI URL: {url}")
+
+        # First attempt with standard headers
+        response = requests.get(url, stream=True, timeout=15, headers=headers)
         response.raise_for_status()
-        return Image.open(BytesIO(response.content))
-    except Exception as e:
-        print(f"Error downloading image: {str(e)}")
-        # Fall back to a placeholder image if we can't download the original
+
+        # Check content type
+        content_type = response.headers.get('Content-Type', '').lower()
+        if not content_type.startswith(('image/', 'application/octet-stream')):
+            print(f"Warning: URL returned non-image content type: {content_type}")
+            # If it's HTML, it might be an error page
+            if 'text/html' in content_type:
+                raise ValueError("Server returned HTML instead of an image")
+
+        # Save content to memory
+        content = response.content
+        if not content or len(content) < 100:  # Too small to be a valid image
+            raise ValueError("Response too small to be a valid image")
+
+        # Multiple attempts with different approaches
+        exceptions = []
+
+        # First attempt: try direct opening
         try:
-            print(f"Using placeholder image instead")
-            # Create a simple gradient placeholder image with the same dimensions as in presentation settings
-            width = HTMLSettings.CARD_WIDTH
-            height = width * 9 // 16  # 16:9 aspect ratio
-            placeholder = Image.new('RGB', (width, height), color=(240, 240, 240))
-            draw = ImageDraw.Draw(placeholder)
+            img_data = BytesIO(content)
+            img = Image.open(img_data)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            img.load()  # Force load to verify it's valid
+            return img
+        except Exception as e:
+            exceptions.append(str(e))
+            print(f"First attempt failed: {str(e)}")
 
-            # Add a gradient effect
-            for y in range(height):
-                color = (240 - y * 30 // height, 240 - y * 20 // height, 240)
-                draw.line([(0, y), (width, y)], fill=color)
+        # Second attempt: try with JPEG specific headers
+        try:
+            print("Retrying with JPEG specific headers")
+            headers['Accept'] = 'image/jpeg'
+            response = requests.get(url, stream=True, timeout=15, headers=headers)
+            response.raise_for_status()
+            img_data = BytesIO(response.content)
+            img = Image.open(img_data)
+            if img.mode != 'RGB':
+                img = img.convert('RGB')
+            img.load()
+            return img
+        except Exception as e:
+            exceptions.append(str(e))
+            print(f"Second attempt failed: {str(e)}")
 
-            # Add text indicating it's a placeholder
+        # Third attempt: try with the original, unmodified URL (for TOI URLs)
+        if original_url != url:
             try:
-                font = ImageFont.load_default()
-                text = "News Image Unavailable"
-                text_width = font.getlength(text)
-                draw.text(
-                    ((width - text_width) // 2, height // 2),
-                    text,
-                    font=font,
-                    fill=(80, 80, 80)
-                )
-            except:
-                # Even if text placement fails, we still have a placeholder
-                pass
+                print("Trying with original unmodified URL")
+                headers['Accept'] = 'image/jpeg,image/png,*/*'
+                response = requests.get(original_url, stream=True, timeout=15, headers=headers)
+                response.raise_for_status()
+                img_data = BytesIO(response.content)
+                img = Image.open(img_data)
+                if img.mode != 'RGB':
+                    img = img.convert('RGB')
+                img.load()
+                return img
+            except Exception as e:
+                exceptions.append(str(e))
+                print(f"Third attempt with original URL failed: {str(e)}")
 
-            return placeholder
-        except Exception as fallback_error:
-            print(f"Error creating placeholder image: {str(fallback_error)}")
+        # If all attempts failed, raise the last exception
+        raise ValueError(f"Failed to load image after multiple attempts: {'; '.join(exceptions)}")
+
+    except Exception as e:
+        print(f"Error downloading image from {url}: {str(e)}")
+        # Fall back to a placeholder image
+        return create_placeholder_image()
+
+
+def create_placeholder_image():
+    """Create a placeholder image when the actual image can't be downloaded."""
+    try:
+        print("Creating placeholder image")
+        # Create a simple gradient placeholder with the same dimensions as in presentation settings
+        width = HTMLSettings.CARD_WIDTH
+        height = width * 9 // 16  # 16:9 aspect ratio
+        placeholder = Image.new('RGB', (width, height), color=(240, 240, 240))
+        draw = ImageDraw.Draw(placeholder)
+
+        # Add a gradient effect
+        for y in range(height):
+            color = (240 - y * 30 // height, 240 - y * 20 // height, 240)
+            draw.line([(0, y), (width, y)], fill=color)
+
+        # Add text indicating it's a placeholder
+        try:
+            font = ImageFont.load_default()
+            text = "News Image Unavailable"
+            text_width = font.getlength(text)
+            draw.text(
+                ((width - text_width) // 2, height // 2),
+                text,
+                font=font,
+                fill=(80, 80, 80)
+            )
+        except:
+            # Even if text placement fails, we still have a placeholder
+            pass
+
+        return placeholder
+    except Exception as fallback_error:
+        print(f"Error creating placeholder image: {str(fallback_error)}")
+        # Last resort: create a minimal colored rectangle as placeholder
+        try:
+            return Image.new('RGB', (HTMLSettings.CARD_WIDTH, 300), color=(230, 230, 240))
+        except:
             return None
 
 
@@ -166,14 +264,14 @@ def generate_news_card(article, output_path):
         current_y += 30  # Space after title
 
         # Add description with spacing
-        desc_wrap_width = int((card_width - 8 * content_padding) / (HTMLSettings.DESCRIPTION_FONT_SIZE * 0.4))
+        desc_wrap_width = int((card_width - 10 * content_padding) / (HTMLSettings.DESCRIPTION_FONT_SIZE * 0.4))
         desc_lines = textwrap.wrap(description, width=desc_wrap_width)
         line_spacing = int(HTMLSettings.DESCRIPTION_FONT_SIZE * 0.3)
         for line in desc_lines:
             draw.text((content_padding, current_y), line, font=desc_font, fill=(0, 0, 0))
             current_y += int(get_font_height(desc_font, line) + line_spacing)
         current_y -= line_spacing  # Remove extra spacing from last line
-        current_y += 40  # Space after description
+        current_y += 30  # Space after description
 
         # Add metadata (source and published date)
         source_text, published_text = "Source: ", "Published: "
