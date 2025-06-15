@@ -17,12 +17,51 @@ from settings import HTMLSettings
 def download_image(url):
     """Download an image from URL and return as a PIL Image object."""
     try:
-        response = requests.get(url, stream=True, timeout=10)
+        # Add headers to mimic a browser request
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/104.0.0.0 Safari/537.36',
+            'Referer': 'https://www.google.com/',  # Common referrer
+            'Accept': 'image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8'
+        }
+
+        response = requests.get(url, stream=True, timeout=10, headers=headers)
         response.raise_for_status()
         return Image.open(BytesIO(response.content))
     except Exception as e:
         print(f"Error downloading image: {str(e)}")
-        return None
+        # Fall back to a placeholder image if we can't download the original
+        try:
+            print(f"Using placeholder image instead")
+            # Create a simple gradient placeholder image with the same dimensions as in presentation settings
+            width = HTMLSettings.CARD_WIDTH
+            height = width * 9 // 16  # 16:9 aspect ratio
+            placeholder = Image.new('RGB', (width, height), color=(240, 240, 240))
+            draw = ImageDraw.Draw(placeholder)
+
+            # Add a gradient effect
+            for y in range(height):
+                color = (240 - y * 30 // height, 240 - y * 20 // height, 240)
+                draw.line([(0, y), (width, y)], fill=color)
+
+            # Add text indicating it's a placeholder
+            try:
+                font = ImageFont.load_default()
+                text = "News Image Unavailable"
+                text_width = font.getlength(text)
+                draw.text(
+                    ((width - text_width) // 2, height // 2),
+                    text,
+                    font=font,
+                    fill=(80, 80, 80)
+                )
+            except:
+                # Even if text placement fails, we still have a placeholder
+                pass
+
+            return placeholder
+        except Exception as fallback_error:
+            print(f"Error creating placeholder image: {str(fallback_error)}")
+            return None
 
 
 def get_font_height(font, text):
