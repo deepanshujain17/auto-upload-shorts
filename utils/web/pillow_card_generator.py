@@ -63,9 +63,6 @@ def generate_news_card(article, output_path):
         card = Image.new('RGB', (card_width, card_height), color=(255, 255, 255))
         draw = ImageDraw.Draw(card)
 
-        # Simple font handling - just use default fonts
-        # No complex system detection or font lists
-        title_font = desc_font = meta_font = meta_bold_font = ImageFont.load_default()
 
         # Try to load fonts with sizes from settings
         try:
@@ -79,9 +76,6 @@ def generate_news_card(article, output_path):
                 font_name + "Bold",   # ArialBold
                 font_name,            # Fallback to regular
             ]
-
-            # Set regular fonts with appropriate sizes
-            title_font = desc_font = meta_font = None
 
             # Try to load regular font
             title_font = ImageFont.truetype(font_name, HTMLSettings.TITLE_FONT_SIZE)
@@ -123,24 +117,24 @@ def generate_news_card(article, output_path):
                 current_y += new_height
 
         # Add title with spacing
-        current_y += HTMLSettings.TITLE_MARGIN_TOP * 2
+        current_y += HTMLSettings.TITLE_MARGIN_TOP
         title_wrap_width = int((card_width - 2 * content_padding) / (HTMLSettings.TITLE_FONT_SIZE * 0.5))
         title_lines = textwrap.wrap(title, width=title_wrap_width)
         for line in title_lines:
             # Use bold font for title text
             draw.text((content_padding, current_y), line, font=title_bold_font, fill=(0, 0, 0))
             current_y += get_font_height(title_bold_font, line)
-        current_y += 20  # Space after title
+        current_y += 30  # Space after title
 
         # Add description with spacing
-        desc_wrap_width = int((card_width - 2 * content_padding) / (HTMLSettings.DESCRIPTION_FONT_SIZE * 0.4))
+        desc_wrap_width = int((card_width - 8 * content_padding) / (HTMLSettings.DESCRIPTION_FONT_SIZE * 0.4))
         desc_lines = textwrap.wrap(description, width=desc_wrap_width)
         line_spacing = int(HTMLSettings.DESCRIPTION_FONT_SIZE * 0.3)
         for line in desc_lines:
             draw.text((content_padding, current_y), line, font=desc_font, fill=(0, 0, 0))
             current_y += int(get_font_height(desc_font, line) + line_spacing)
         current_y -= line_spacing  # Remove extra spacing from last line
-        current_y += 20  # Space after description
+        current_y += 40  # Space after description
 
         # Add metadata (source and published date)
         source_text, published_text = "Source: ", "Published: "
@@ -152,7 +146,7 @@ def generate_news_card(article, output_path):
         draw.text((source_pos, current_y), source, font=meta_font, fill=(128, 128, 128))
 
         # Draw separator and published date
-        separator = " | "
+        separator = "           |         "
         sep_pos = source_pos + meta_font.getlength(source)
         draw.text((sep_pos, current_y), separator, font=meta_font, fill=(128, 128, 128))
 
@@ -193,7 +187,7 @@ def generate_news_card(article, output_path):
             mask = Image.new('L', (card_width, final_height), 0)
             mask_draw = ImageDraw.Draw(mask)
             mask_draw.rounded_rectangle(
-                [(0, 0), (card_width-1, final_height-1)],
+                [(0, 0), (card_width-1, final_height-1)], # Change these for shadow effect outer layer
                 radius=radius, fill=255
             )
             card_with_content.putalpha(mask)
