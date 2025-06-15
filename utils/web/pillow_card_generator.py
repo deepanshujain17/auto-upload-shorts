@@ -4,6 +4,7 @@ Utility module for generating news card images using Pillow.
 
 # Standard library imports
 import os
+import sys
 from io import BytesIO
 from datetime import datetime, timezone, timedelta
 import textwrap
@@ -13,6 +14,75 @@ import re  # Added for robust URL modification
 # Third-party imports
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from settings import HTMLSettings
+
+def get_font(font_name, size, bold=False):
+    """Get a font with fallbacks to ensure consistent rendering across environments.
+    Prioritizes the user's specified font family (Arial) while providing robust fallbacks.
+    """
+    # Extract the first font name from font family string (e.g., "Arial, sans-serif" -> "Arial")
+    primary_font = font_name.split(',')[0].strip()
+
+    # Try different variants for bold fonts
+    if bold:
+        font_variants = [
+            f"{primary_font}-Bold",   # Arial-Bold
+            f"{primary_font} Bold",   # Arial Bold
+            f"{primary_font}Bold",    # ArialBold
+            primary_font,             # Fallback to regular
+        ]
+    else:
+        font_variants = [primary_font]
+
+    # Try each font variant directly
+    for variant in font_variants:
+        try:
+            return ImageFont.truetype(variant, size)
+        except (IOError, OSError):
+            pass
+
+    # Try OS-specific font paths
+    if sys.platform == "win32":  # Windows
+        font_paths = [
+            os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts', 'Arial.ttf'),
+            os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts', 'Arial Bold.ttf') if bold else None,
+            os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts', 'Arial.ttf'),
+        ]
+    elif sys.platform == "darwin":  # macOS
+        font_paths = [
+            '/System/Library/Fonts/Supplemental/Arial.ttf',
+            '/System/Library/Fonts/Supplemental/Arial Bold.ttf' if bold else None,
+            '/Library/Fonts/Arial.ttf',
+        ]
+    else:  # Linux and other platforms
+        font_paths = [
+            '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf',
+            '/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf' if bold else None,
+            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Common Linux fallback
+            '/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf',  # Another common fallback
+        ]
+
+    # Filter out None values
+    font_paths = [p for p in font_paths if p]
+
+    # Try loading from system paths
+    for font_path in font_paths:
+        try:
+            return ImageFont.truetype(font_path, size)
+        except (IOError, OSError):
+            continue
+
+    # Last resort: use a default font with reasonable size
+    # Check if we're in a CI environment (like GitHub Actions)
+    is_ci = os.environ.get('CI', 'false').lower() == 'true'
+    min_size = size if is_ci else max(size // 2, 16)  # Ensure minimum font size in CI
+
+    print(f"Warning: Could not load font '{primary_font}'. Using fallback font.")
+    try:
+        # Try a common font likely to exist on many systems
+        return ImageFont.truetype("DejaVuSans.ttf", min_size)
+    except:
+        # Very last resort - built-in default
+        return ImageFont.load_default()
 
 
 def download_image(url):
@@ -200,46 +270,33 @@ def generate_news_card(article, output_path):
         card = Image.new('RGB', (card_width, card_height), color=(255, 255, 255))
         draw = ImageDraw.Draw(card)
 
+        # Use our new font handling system
+        # Determine font sizes with environment considerations
+        # GitHub Actions typically runs on Linux with different DPI
+        is_ci = os.environ.get('CI', 'false').lower() == 'true'
 
-        # Try to load fonts with sizes from settings
-        try:
-            # Extract first font from font family string (e.g., "Arial, sans-serif" -> "Arial")
-            font_name = HTMLSettings.FONT_FAMILY.split(',')[0].strip()
+        # Scale factors for different environments
+        title_size = HTMLSettings.TITLE_FONT_SIZE
+        desc_size = HTMLSettings.DESCRIPTION_FONT_SIZE
+        meta_size = HTMLSettings.META_FONT_SIZE
 
-            # Find standard and bold variants by common naming patterns
-            bold_font_candidates = [
-                font_name + "-Bold",  # Arial-Bold
-                font_name + " Bold",  # Arial Bold
-                font_name + "Bold",   # ArialBold
-                font_name,            # Fallback to regular
-            ]
+        # Increase font size on CI environment if needed
+        if is_ci:
+            print("Running in CI environment, adjusting font sizes")
+            title_size = int(title_size * 1.5)
+            desc_size = int(desc_size * 1.5)
+            meta_size = int(meta_size * 1.5)
 
-            # Try to load regular font
-            title_font = ImageFont.truetype(font_name, HTMLSettings.TITLE_FONT_SIZE)
-            desc_font = ImageFont.truetype(font_name, HTMLSettings.DESCRIPTION_FONT_SIZE)
-            meta_font = ImageFont.truetype(font_name, HTMLSettings.META_FONT_SIZE)
+        # Log the font sizes being used
+        print(f"Using font sizes - Title: {title_size}, Description: {desc_size}, Meta: {meta_size}")
 
-            # Try to find bold variant for titles and bold text
-            title_bold_font = meta_bold_font = None
-            for bold_candidate in bold_font_candidates:
-                try:
-                    title_bold_font = ImageFont.truetype(bold_candidate, HTMLSettings.TITLE_FONT_SIZE)
-                    meta_bold_font = ImageFont.truetype(bold_candidate, HTMLSettings.META_FONT_SIZE)
-                    break  # Found a bold font
-                except:
-                    continue
+        # Load fonts using our fallback system
+        desc_font = get_font(HTMLSettings.FONT_FAMILY, desc_size)
+        meta_font = get_font(HTMLSettings.FONT_FAMILY, meta_size)
 
-            # If couldn't find bold variant, fall back to regular
-            if not title_bold_font:
-                title_bold_font = title_font
-            if not meta_bold_font:
-                meta_bold_font = meta_font
-
-        except:
-            # Continue with default fonts if loading fails
-            title_font = title_bold_font = ImageFont.load_default()
-            desc_font = ImageFont.load_default()
-            meta_font = meta_bold_font = ImageFont.load_default()
+        # Get bold variants
+        title_bold_font = get_font(HTMLSettings.FONT_FAMILY, title_size, bold=True)
+        meta_bold_font = get_font(HTMLSettings.FONT_FAMILY, meta_size, bold=True)
 
         current_y = 0
 
@@ -255,7 +312,7 @@ def generate_news_card(article, output_path):
 
         # Add title with spacing
         current_y += HTMLSettings.TITLE_MARGIN_TOP
-        title_wrap_width = int((card_width - 2 * content_padding) / (HTMLSettings.TITLE_FONT_SIZE * 0.5))
+        title_wrap_width = int((card_width - 10 * content_padding) / (title_size * 0.5))  # Adjusted wrapping factor
         title_lines = textwrap.wrap(title, width=title_wrap_width)
         for line in title_lines:
             # Use bold font for title text
@@ -264,9 +321,9 @@ def generate_news_card(article, output_path):
         current_y += 30  # Space after title
 
         # Add description with spacing
-        desc_wrap_width = int((card_width - 10 * content_padding) / (HTMLSettings.DESCRIPTION_FONT_SIZE * 0.4))
+        desc_wrap_width = int((card_width - 10 * content_padding) / (desc_size * 0.4))  # Adjusted wrapping factor
         desc_lines = textwrap.wrap(description, width=desc_wrap_width)
-        line_spacing = int(HTMLSettings.DESCRIPTION_FONT_SIZE * 0.3)
+        line_spacing = int(desc_size * 0.3)
         for line in desc_lines:
             draw.text((content_padding, current_y), line, font=desc_font, fill=(0, 0, 0))
             current_y += int(get_font_height(desc_font, line) + line_spacing)
@@ -275,7 +332,12 @@ def generate_news_card(article, output_path):
 
         # Add metadata (source and published date)
         source_text, published_text = "Source: ", "Published: "
-        source_width = meta_bold_font.getlength(source_text)
+        try:
+            source_width = meta_bold_font.getlength(source_text)
+        except AttributeError:
+            # For older Pillow versions
+            source_width = meta_bold_font.getsize(source_text)[0]
+
         source_pos = content_padding + source_width
 
         # Draw source
@@ -284,13 +346,21 @@ def generate_news_card(article, output_path):
 
         # Draw separator and published date
         separator = "           |         "
-        sep_pos = source_pos + meta_font.getlength(source)
+        try:
+            sep_pos = source_pos + meta_font.getlength(source)
+        except AttributeError:
+            sep_pos = source_pos + meta_font.getsize(source)[0]
+
         draw.text((sep_pos, current_y), separator, font=meta_font, fill=(128, 128, 128))
 
-        published_pos = sep_pos + meta_font.getlength(separator)
-        draw.text((published_pos, current_y), published_text, font=meta_bold_font, fill=(128, 128, 128))
+        try:
+            published_pos = sep_pos + meta_font.getlength(separator)
+            pub_value_pos = published_pos + meta_bold_font.getlength(published_text)
+        except AttributeError:
+            published_pos = sep_pos + meta_font.getsize(separator)[0]
+            pub_value_pos = published_pos + meta_bold_font.getsize(published_text)[0]
 
-        pub_value_pos = published_pos + meta_bold_font.getlength(published_text)
+        draw.text((published_pos, current_y), published_text, font=meta_bold_font, fill=(128, 128, 128))
         draw.text((pub_value_pos, current_y), published, font=meta_font, fill=(128, 128, 128))
 
         # Calculate final height
@@ -340,6 +410,7 @@ def generate_news_card(article, output_path):
 
         # Save the image
         output.save(output_path, format="PNG")
+        print(f"Successfully saved news card to {output_path}")
 
     except Exception as e:
         print(f"Error generating card image: {str(e)}")
