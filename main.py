@@ -32,6 +32,7 @@ async def process_categories(yt) -> None:
             try:
                 print(f"\n\n\n📌 Processing category: {category}")
                 # Fetch the news articles data
+                await asyncio.sleep(1)
                 articles = await fetch_news_article(category)
 
                 # Process articles concurrently
