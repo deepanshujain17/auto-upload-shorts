@@ -16,73 +16,44 @@ from PIL import Image, ImageDraw, ImageFont, ImageFilter
 from settings import HTMLSettings
 
 def get_font(font_name, size, bold=False):
-    """Get a font with fallbacks to ensure consistent rendering across environments.
-    Prioritizes the user's specified font family (Arial) while providing robust fallbacks.
-    """
+    """Get a font with fallbacks to ensure consistent rendering across environments."""
     # Extract the first font name from font family string (e.g., "Arial, sans-serif" -> "Arial")
     primary_font = font_name.split(',')[0].strip()
 
-    # Try different variants for bold fonts
-    if bold:
-        font_variants = [
-            f"{primary_font}-Bold",   # Arial-Bold
-            f"{primary_font} Bold",   # Arial Bold
-            f"{primary_font}Bold",    # ArialBold
-            primary_font,             # Fallback to regular
-        ]
-    else:
-        font_variants = [primary_font]
+    # For bold fonts, try to find a bold variant
+    font_name_to_try = f"{primary_font}-Bold" if bold else primary_font
 
-    # Try each font variant directly
-    for variant in font_variants:
+    try:
+        # First try: direct loading using font name
+        return ImageFont.truetype(font_name_to_try, size)
+    except (IOError, OSError):
+        # Second try: common system locations based on OS
         try:
-            return ImageFont.truetype(variant, size)
-        except (IOError, OSError):
-            pass
+            # For different OS platforms
+            if sys.platform == "win32":
+                font_path = os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts',
+                                        'Arial Bold.ttf' if bold else 'Arial.ttf')
+            elif sys.platform == "darwin":
+                font_path = '/System/Library/Fonts/Supplemental/Arial Bold.ttf' if bold else '/System/Library/Fonts/Supplemental/Arial.ttf'
+            else:
+                # Linux
+                font_path = '/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf' if bold else '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf'
 
-    # Try OS-specific font paths
-    if sys.platform == "win32":  # Windows
-        font_paths = [
-            os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts', 'Arial.ttf'),
-            os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts', 'Arial Bold.ttf') if bold else None,
-            os.path.join(os.environ.get('WINDIR', 'C:\\Windows'), 'Fonts', 'Arial.ttf'),
-        ]
-    elif sys.platform == "darwin":  # macOS
-        font_paths = [
-            '/System/Library/Fonts/Supplemental/Arial.ttf',
-            '/System/Library/Fonts/Supplemental/Arial Bold.ttf' if bold else None,
-            '/Library/Fonts/Arial.ttf',
-        ]
-    else:  # Linux and other platforms
-        font_paths = [
-            '/usr/share/fonts/truetype/msttcorefonts/Arial.ttf',
-            '/usr/share/fonts/truetype/msttcorefonts/Arial_Bold.ttf' if bold else None,
-            '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf',  # Common Linux fallback
-            '/usr/share/fonts/liberation-sans/LiberationSans-Regular.ttf',  # Another common fallback
-        ]
-
-    # Filter out None values
-    font_paths = [p for p in font_paths if p]
-
-    # Try loading from system paths
-    for font_path in font_paths:
-        try:
             return ImageFont.truetype(font_path, size)
         except (IOError, OSError):
-            continue
-
-    # Last resort: use a default font with reasonable size
-    # Check if we're in a CI environment (like GitHub Actions)
-    is_ci = os.environ.get('CI', 'false').lower() == 'true'
-    min_size = size if is_ci else max(size // 2, 16)  # Ensure minimum font size in CI
-
-    print(f"Warning: Could not load font '{primary_font}'. Using fallback font.")
-    try:
-        # Try a common font likely to exist on many systems
-        return ImageFont.truetype("DejaVuSans.ttf", min_size)
-    except:
-        # Very last resort - built-in default
-        return ImageFont.load_default()
+            # Third try: common fallback fonts
+            try:
+                fallback = "DejaVuSans-Bold.ttf" if bold else "DejaVuSans.ttf"
+                return ImageFont.truetype(fallback, size)
+            except:
+                # Check if we're in a CI environment
+                is_ci = os.environ.get('CI', 'false').lower() == 'true'
+                if is_ci:
+                    print(f"Warning: Using default font in CI environment with size {size}")
+                    return ImageFont.load_default()  # Last resort
+                else:
+                    print(f"Warning: Could not load font '{primary_font}'. Using default font.")
+                    return ImageFont.load_default()  # Last resort
 
 
 def download_image(url):
@@ -330,36 +301,34 @@ def generate_news_card(article, output_path):
         current_y -= line_spacing  # Remove extra spacing from last line
         current_y += 30  # Space after description
 
-        # Add metadata (source and published date)
+        # Add metadata (source and published date) - simplified approach
         source_text, published_text = "Source: ", "Published: "
-        try:
-            source_width = meta_bold_font.getlength(source_text)
-        except AttributeError:
-            # For older Pillow versions
-            source_width = meta_bold_font.getsize(source_text)[0]
 
+        # Helper function to get text width across different Pillow versions
+        def get_text_width(font, text):
+            try:
+                return font.getlength(text)  # Newer Pillow versions
+            except AttributeError:
+                return font.getsize(text)[0]  # Older Pillow versions
+
+        # Calculate positions using the helper function
+        source_width = get_text_width(meta_bold_font, source_text)
         source_pos = content_padding + source_width
 
-        # Draw source
+        # Draw source information
         draw.text((content_padding, current_y), source_text, font=meta_bold_font, fill=(128, 128, 128))
         draw.text((source_pos, current_y), source, font=meta_font, fill=(128, 128, 128))
 
         # Draw separator and published date
-        separator = "           |         "
-        try:
-            sep_pos = source_pos + meta_font.getlength(source)
-        except AttributeError:
-            sep_pos = source_pos + meta_font.getsize(source)[0]
-
+        separator = " | "
+        sep_pos = source_pos + get_text_width(meta_font, source)
         draw.text((sep_pos, current_y), separator, font=meta_font, fill=(128, 128, 128))
 
-        try:
-            published_pos = sep_pos + meta_font.getlength(separator)
-            pub_value_pos = published_pos + meta_bold_font.getlength(published_text)
-        except AttributeError:
-            published_pos = sep_pos + meta_font.getsize(separator)[0]
-            pub_value_pos = published_pos + meta_bold_font.getsize(published_text)[0]
+        # Calculate published text positions
+        published_pos = sep_pos + get_text_width(meta_font, separator)
+        pub_value_pos = published_pos + get_text_width(meta_bold_font, published_text)
 
+        # Draw published information
         draw.text((published_pos, current_y), published_text, font=meta_bold_font, fill=(128, 128, 128))
         draw.text((pub_value_pos, current_y), published, font=meta_font, fill=(128, 128, 128))
 
