@@ -1,4 +1,4 @@
-from core.news.news_api_client import get_category_news, get_keyword_news
+from core.news.news_api_fixed import get_category_news, get_keyword_news
 
 
 async def fetch_news_article(identifier: str, is_keyword: bool = False) -> list[dict]:
