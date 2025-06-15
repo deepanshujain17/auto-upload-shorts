@@ -98,7 +98,6 @@ def _upload_youtube_shorts_sync(
 
         # Add video to the respective category playlist
         add_to_playlist(yt, video_id, category)
-        print(f"✅ Successfully uploaded video for {category}: {video_id}")
 
     except Exception as e:
         print(f"❌ Error uploading video for {category}: {str(e)}")

@@ -9,7 +9,8 @@ from moviepy.video.VideoClip import ImageClip
 from settings import PathSettings, VideoSettings, news_settings
 from utils.media.audio_composer import AudioComposer
 from utils.media.video_composer import VideoComposer
-from utils.web.pillow_card_generator import generate_news_card
+from utils.web.browser_utils import render_card_to_image
+from utils.web.html_utils import create_html_card
 from utils.file_lock import FileLock
 
 # Shared thread pool executor with proper initialization
@@ -39,9 +40,11 @@ async def _generate_overlay_image(category: str, article: dict) -> str:
     """Generate the overlay image asynchronously using the shared executor."""
     try:
         # Get file paths
+        html_output = PathSettings.get_html_output(category)
         overlay_image = PathSettings.get_overlay_image(category)
 
-        # Acquire lock for the overlay image
+        # Acquire locks for both files
+        await FileLock.acquire(html_output)
         await FileLock.acquire(overlay_image)
 
         try:
@@ -49,7 +52,9 @@ async def _generate_overlay_image(category: str, article: dict) -> str:
             executor = get_executor()
             return await loop.run_in_executor(executor, _generate_overlay_image_sync, category, article)
         finally:
+            # Release locks in reverse order
             await FileLock.release(overlay_image)
+            await FileLock.release(html_output)
     except Exception as e:
         print(f"Error in _generate_overlay_image: {str(e)}")
         raise
@@ -70,10 +75,15 @@ def _generate_overlay_image_sync(category: str, article: dict) -> str:
     try:
         print(f"\nGenerating overlay video from article of category: {category}")
 
-        # Generate overlay image directly using Pillow
+        # Generate news card HTML
+        html_output = PathSettings.get_html_output(category)
+        print(f"🖥️ Generating HTML card for {category}...")
+        create_html_card(article, html_output)
+
+        # Generate overlay image from HTML
         overlay_image = PathSettings.get_overlay_image(category)
-        print(f"🖼️ Generating news card image for {category}...")
-        generate_news_card(article, overlay_image)
+        print(f"🖼️ Rendering HTML to image for {category}...")
+        render_card_to_image(html_output, overlay_image)
 
         print(f"✅ Overlay image created: {overlay_image}")
         return overlay_image

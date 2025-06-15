@@ -28,48 +28,23 @@ async def process_article(yt, category: str, article: dict, hashtag: str = None)
 async def process_categories(yt) -> None:
     """Process news for each category and upload to YouTube asynchronously."""
     try:
-        # Create a semaphore to limit concurrent API requests
-        # This prevents making too many requests at once
-        api_semaphore = asyncio.Semaphore(2)  # Allow only 2 concurrent API calls
-
-        async def fetch_articles_for_category(category):
-            """Fetch articles for a single category with rate limiting"""
+        async def process_single_category(category):
             try:
-                print(f"\n📌 Fetching news for category: {category}")
-                # Use semaphore to limit concurrent API calls
-                async with api_semaphore:
-                    # Fetch the news articles data with rate limiting
-                    articles = await fetch_news_article(category)
-                    # Add a small delay between API calls to avoid rate limiting
-                    await asyncio.sleep(1)
-                    return category, articles
+                print(f"\n\n\n📌 Processing category: {category}")
+                # Fetch the news articles data
+                articles = await fetch_news_article(category)
+
+                # Process articles concurrently
+                tasks = [process_article(yt, category, article) for article in articles]
+                await asyncio.gather(*tasks)
+
+                print(f"✅ Successfully processed category: {category}")
             except Exception as e:
-                print(f"⚠️ Error fetching news for category {category}: {str(e)}")
-                return category, None
+                print(f"⚠️ Error processing category {category}: {str(e)}")
 
-        # Step 1: Fetch articles for all categories with rate limiting
-        # Create tasks for fetching articles, which will respect the semaphore
-        fetch_tasks = [fetch_articles_for_category(category) for category in news_settings.categories]
-
-        # Execute fetch tasks one by one, with a delay between them to respect rate limits
-        # but allow them to run concurrently up to the semaphore limit
-        fetch_results = await asyncio.gather(*fetch_tasks)
-
-        # Step 2: Process articles concurrently for all categories where fetching succeeded
-        processing_tasks = []
-
-        for category, articles in fetch_results:
-            if articles:
-                print(f"\n📊 Processing articles for category: {category}")
-                # For each article in this category, create a processing task
-                for article in articles:
-                    processing_tasks.append(process_article(yt, category, article))
-
-        # Run all processing tasks in parallel - no rate limiting needed here
-        if processing_tasks:
-            await asyncio.gather(*processing_tasks)
-
-        print(f"✅ Successfully processed all categories")
+        # Create tasks for all categories to run concurrently
+        category_tasks = [process_single_category(category) for category in news_settings.categories]
+        await asyncio.gather(*category_tasks)
 
     except Exception as e:
         print(f"❌ Fatal error in category processing: {str(e)}")
