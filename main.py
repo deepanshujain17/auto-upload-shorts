@@ -28,12 +28,29 @@ async def process_article(yt, category: str, article: dict, hashtag: str = None)
 async def process_categories(yt) -> None:
     """Process news for each category and upload to YouTube asynchronously."""
     try:
-        async def process_single_category(category):
+        # First, fetch all articles for all categories with a delay between each fetch
+        print("\n📰 Fetching articles for all categories...")
+        all_category_articles = {}
+
+        for category in news_settings.categories:
             try:
-                print(f"\n\n\n📌 Processing category: {category}")
-                # Fetch the news articles data
-                await asyncio.sleep(1)
+                print(f"📌 Fetching for category: {category}")
                 articles = await fetch_news_article(category)
+                all_category_articles[category] = articles
+                print(f"✅ Fetched {len(articles)} articles for category: {category}")
+
+                # Add a delay before fetching the next category
+                if category != news_settings.categories[-1]:  # No need to wait after the last one
+                    await asyncio.sleep(2)
+
+            except Exception as e:
+                print(f"⚠️ Error fetching articles for category {category}: {str(e)}")
+                # Continue with other categories even if one fails
+
+        # Now process all categories and their articles asynchronously
+        async def process_category_articles(category, articles):
+            try:
+                print(f"\n\n\n📌 Processing category: {category} with {len(articles)} articles")
 
                 # Process articles concurrently
                 tasks = [process_article(yt, category, article) for article in articles]
@@ -43,9 +60,18 @@ async def process_categories(yt) -> None:
             except Exception as e:
                 print(f"⚠️ Error processing category {category}: {str(e)}")
 
-        # Create tasks for all categories to run concurrently
-        category_tasks = [process_single_category(category) for category in news_settings.categories]
-        await asyncio.gather(*category_tasks)
+        # Create tasks for processing all categories concurrently
+        category_tasks = [
+            process_category_articles(category, articles)
+            for category, articles in all_category_articles.items()
+            if articles  # Skip categories with no articles
+        ]
+
+        if category_tasks:
+            await asyncio.gather(*category_tasks)
+            print("\n✅ Successfully processed all categories")
+        else:
+            print("\n⚠️ No articles found for any category")
 
     except Exception as e:
         print(f"❌ Fatal error in category processing: {str(e)}")
