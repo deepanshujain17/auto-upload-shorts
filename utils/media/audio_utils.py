@@ -1,13 +1,23 @@
 from io import BytesIO
-
+import time
 import boto3
+from botocore.config import Config
 import numpy as np
 from moviepy.audio.AudioClip import AudioArrayClip
 from pydub import AudioSegment
 
 def _init_polly_client():
-    """Initialize and return AWS Polly client."""
-    return boto3.client("polly")
+    """Initialize and return AWS Polly client with proper timeout settings."""
+    # Configure AWS client with appropriate timeouts and retries
+    config = Config(
+        connect_timeout=10,  # 10 seconds for connection timeout
+        read_timeout=30,     # 30 seconds for read timeout
+        retries={
+            'max_attempts': 3,  # Retry up to 3 times
+            'mode': 'standard'
+        }
+    )
+    return boto3.client("polly", config=config)
 
 def _process_audio_stream(audio_stream: bytes) -> AudioArrayClip:
     """
@@ -56,23 +66,35 @@ def convert_text_to_speech(
     if text_type not in ["text", "ssml"]:
         raise ValueError("text_type must be either 'text' or 'ssml'")
 
-    try:
-        polly = _init_polly_client()
+    # Implement retry logic for network issues
+    max_retries = 3
+    retry_delay = 2  # seconds
 
-        # Generate speech using Polly
-        response = polly.synthesize_speech(
-            Text=text,
-            TextType=text_type,
-            OutputFormat="mp3",
-            VoiceId=voice_id,
-            Engine=engine
-        )
+    for attempt in range(1, max_retries + 1):
+        try:
+            polly = _init_polly_client()
 
-        audio_clip = _process_audio_stream(response["AudioStream"].read())
-        print("🎙️ ✅ Audio generated successfully")
-        return audio_clip
+            print(f"🎙️ Generating speech (attempt {attempt}/{max_retries})...")
 
-    except Exception as e:
-        error_msg = f"Error generating audio: {str(e)}"
-        print(f"❌ {error_msg}")
-        raise RuntimeError(error_msg) from e
+            # Generate speech using Polly
+            response = polly.synthesize_speech(
+                Text=text,
+                TextType=text_type,
+                OutputFormat="mp3",
+                VoiceId=voice_id,
+                Engine=engine
+            )
+
+            audio_clip = _process_audio_stream(response["AudioStream"].read())
+            print("🎙️ ✅ Audio generated successfully")
+            return audio_clip
+
+        except Exception as e:
+            if "Read timeout" in str(e) and attempt < max_retries:
+                print(f"⚠️ Read timeout occurred. Retrying in {retry_delay} seconds... (Attempt {attempt}/{max_retries})")
+                time.sleep(retry_delay)
+                retry_delay *= 2  # Exponential backoff
+            else:
+                error_msg = f"Error generating audio: {str(e)}"
+                print(f"❌ {error_msg}")
+                raise RuntimeError(error_msg) from e

@@ -1,5 +1,6 @@
-from typing import Optional
+from typing import Optional, List, Dict, Any
 import asyncio
+import functools
 from concurrent.futures import ThreadPoolExecutor
 
 from googleapiclient.discovery import Resource
@@ -20,7 +21,11 @@ def get_upload_executor() -> ThreadPoolExecutor:
     """Get or create the shared thread pool executor for uploads."""
     global _upload_executor
     if _upload_executor is None:
-        _upload_executor = ThreadPoolExecutor(max_workers=3)
+        # YouTube API operations are network-bound but can be quite heavy
+        # Use a smaller pool to avoid overwhelming the API
+        import multiprocessing
+        cpu_count = multiprocessing.cpu_count()
+        _upload_executor = ThreadPoolExecutor(max_workers=max(cpu_count * 2, 8))
     return _upload_executor
 
 async def cleanup_upload_executor():
@@ -31,6 +36,12 @@ async def cleanup_upload_executor():
             _upload_executor.shutdown(wait=True)
             _upload_executor = None
 
+async def _run_in_upload_executor(func, *args, **kwargs):
+    """Helper function to run a synchronous function in the upload executor."""
+    loop = asyncio.get_running_loop()
+    executor = get_upload_executor()
+    return await loop.run_in_executor(executor, functools.partial(func, *args, **kwargs))
+
 async def upload_youtube_shorts(
     yt: Resource,
     category: str,
@@ -38,23 +49,8 @@ async def upload_youtube_shorts(
     article: dict,
     hashtag: Optional[str] = None
 ) -> None:
-    loop = asyncio.get_running_loop()
-    executor = get_upload_executor()
-    return await loop.run_in_executor(
-        executor,
-        _upload_youtube_shorts_sync,
-        yt, category, overlay_video_output, article, hashtag
-    )
-
-def _upload_youtube_shorts_sync(
-    yt: Resource,
-    category: str,
-    overlay_video_output: str,
-    article: dict,
-    hashtag: Optional[str] = None
-) -> None:
     """
-    Upload the generated video to YouTube Shorts.
+    Upload the generated video to YouTube Shorts asynchronously.
 
     Args:
         yt: YouTube API client
@@ -67,7 +63,7 @@ def _upload_youtube_shorts_sync(
         Exception: If upload fails
     """
     try:
-        # Generate tags, title and description
+        # These metadata generation functions are CPU-light and can run in the main thread
         article_tags, combined_tags = generate_video_tags(article, category, hashtag)
         print(f"Combined tags: {combined_tags}")
 
@@ -86,7 +82,10 @@ def _upload_youtube_shorts_sync(
 
         # TODO: Check in cache with title, if it exists already skip upload.
         print(f"🚀 Uploading {category} video to YouTube Shorts...")
-        video_id = upload_video(
+
+        # Run the upload operation in the executor (network-bound but potentially slow)
+        video_id = await _run_in_upload_executor(
+            upload_video,
             yt,
             overlay_video_output,
             title,
@@ -96,9 +95,12 @@ def _upload_youtube_shorts_sync(
             privacy
         )
 
-        # Add video to the respective category playlist
-        add_to_playlist(yt, video_id, category)
+        # Also run the playlist addition in the executor
+        if video_id:
+            await _run_in_upload_executor(add_to_playlist, yt, video_id, category)
+            print(f"✅ Successfully uploaded video for {category} and added to playlist")
 
+        return video_id
     except Exception as e:
-        print(f"❌ Error uploading video for {category}: {str(e)}")
+        print(f"❌ Error uploading YouTube Short for {category}: {str(e)}")
         raise
