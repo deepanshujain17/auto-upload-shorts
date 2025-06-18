@@ -82,7 +82,7 @@ async def process_keywords(yt) -> None:
     """Process news for trending hashtags and manual queries asynchronously."""
     try:
         # Get trending hashtags and combine with manual queries
-        trending_hashtags = await get_trending_hashtags()
+        trending_hashtags = await get_trending_hashtags(TrendingSettings.MAX_HASHTAGS)
         manual_hashtags = TrendingSettings.get_manual_hashtag_queries()
         hashtags = list(dict.fromkeys(manual_hashtags + trending_hashtags))
 
