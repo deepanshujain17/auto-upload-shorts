@@ -97,14 +97,20 @@ async def process_keywords(yt) -> None:
         for idx, tag in enumerate(hashtags, 1):
             print(f"{idx}. {tag} ({hashtag_sources[tag]})")
 
-        # Process all hashtags concurrently
-        async def process_single_hashtag(hashtag):
-            try:
-                query = normalize_hashtag(hashtag) if hashtag_sources[hashtag] == "trending" else hashtag
-                print(f"\n\n\n🔍 Processing hashtag: {hashtag}. Converted query: {query}")
+        # Fetch all articles for all hashtags synchronously first
+        all_hashtag_articles = {}
+        for hashtag in hashtags:
+            query = normalize_hashtag(hashtag) if hashtag_sources[hashtag] == "trending" else hashtag
+            print(f"\n🔍 Fetching articles for hashtag: {hashtag}. Converted query: {query}")
+            articles = await fetch_news_article(query, is_keyword=True)
+            all_hashtag_articles[hashtag] = (query, articles)
+            print(f"📰 Found {len(articles)} articles for hashtag: {hashtag}")
 
-                # Fetch and process articles
-                articles = await fetch_news_article(query, is_keyword=True)
+        # Then process all hashtags and their articles asynchronously
+        async def process_hashtag_articles(hashtag, query_articles_tuple):
+            try:
+                query, articles = query_articles_tuple
+                print(f"\n\n\n🔍 Processing hashtag: {hashtag} with {len(articles)} articles")
 
                 # Process articles concurrently
                 tasks = [process_article(yt, query, article, hashtag) for article in articles]
@@ -114,12 +120,21 @@ async def process_keywords(yt) -> None:
             except Exception as e:
                 print(f"⚠️ Error processing hashtag {hashtag}: {str(e)}")
 
-        # Create tasks for all hashtags to run concurrently
-        hashtag_tasks = [process_single_hashtag(hashtag) for hashtag in hashtags]
-        await asyncio.gather(*hashtag_tasks)
+        # Create tasks for processing all hashtags concurrently
+        hashtag_tasks = [
+            process_hashtag_articles(hashtag, query_articles)
+            for hashtag, query_articles in all_hashtag_articles.items()
+            if query_articles[1]  # Skip hashtags with no articles
+        ]
+
+        if hashtag_tasks:
+            await asyncio.gather(*hashtag_tasks)
+            print("\n✅ Successfully processed all hashtags")
+        else:
+            print("\n⚠️ No articles found for any hashtag")
 
     except Exception as e:
-        print(f"�� Fatal error in hashtag processing: {str(e)}")
+        print(f"❌ Fatal error in hashtag processing: {str(e)}")
         raise
 
 
