@@ -81,7 +81,7 @@ async def upload_youtube_shorts(
         privacy = YouTubeSettings.DEFAULT_PRIVACY
 
         # TODO: Check in cache with title, if it exists already skip upload.
-        print(f"🚀 Uploading {category} video to YouTube Shorts...")
+        print(f"🚀 Uploading '{category}' video to YouTube Shorts...")
 
         # Run the upload operation in the executor (network-bound but potentially slow)
         video_id = await _run_in_upload_executor(
