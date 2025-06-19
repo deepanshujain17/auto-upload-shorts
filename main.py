@@ -41,11 +41,16 @@ async def process_categories(yt) -> None:
 
                 # Add a delay before fetching the next category
                 if category != news_settings.categories[-1]:  # No need to wait after the last one
-                    await asyncio.sleep(2)
+                    await asyncio.sleep(1)
 
             except Exception as e:
                 print(f"⚠️ Error fetching articles for category {category}: {str(e)}")
                 # Continue with other categories even if one fails
+
+        # Print summary of all fetched articles
+        total_categories_articles_fetched = len(all_category_articles)
+        total_articles_fetched = sum(len(articles) for _, articles in all_category_articles.values())
+        print(f"\n🔍 Total articles fetched: {total_articles_fetched} for {total_categories_articles_fetched} categories")
 
         # Now process all categories and their articles asynchronously
         async def process_category_articles(category, articles):
@@ -103,8 +108,14 @@ async def process_keywords(yt) -> None:
             query = normalize_hashtag(hashtag) if hashtag_sources[hashtag] == "trending" else hashtag
             print(f"\n🔍 Fetching articles for hashtag: {hashtag}. Converted query: {query}")
             articles = await fetch_news_article(query, is_keyword=True)
-            all_hashtag_articles[hashtag] = (query, articles)
+            if articles:
+                all_hashtag_articles[hashtag] = (query, articles)
             print(f"📰 Found {len(articles)} articles for hashtag: {hashtag}")
+
+        # Print summary of all fetched articles
+        total_hashtags_articles_fetched = len(all_hashtag_articles)
+        total_articles_fetched = sum(len(articles) for _, articles in all_hashtag_articles.values())
+        print(f"\n🔍 Total articles fetched: {total_articles_fetched} for {total_hashtags_articles_fetched} hashtags")
 
         # Then process all hashtags and their articles asynchronously
         async def process_hashtag_articles(hashtag, query_articles_tuple):
