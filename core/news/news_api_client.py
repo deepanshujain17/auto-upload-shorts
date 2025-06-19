@@ -30,8 +30,10 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
     Asynchronously fetch news articles from GNews API for given categories
     Implements exponential backoff for rate limiting (HTTP 429).
 
+    Returns:
+        List[Dict[str, Any]]: The matching articles if found or empty list if none found
+
     Raises:
-        ValueError: If no articles are found for the given category
         aiohttp.ClientError: If there's a network error after all retries
     """
     print(f"📰 Fetching news for category: {category}")
@@ -101,7 +103,8 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
                     print(f"✅ Successfully fetched article for {category}")
                     return result
                 else:
-                    raise ValueError(f"🔍 No articles found for category: {category}")
+                    print(f"🔍 No articles found for category: {category}")
+                    return []  # Return empty list instead of raising an exception
 
         except asyncio.TimeoutError:
             # Handle request timeout
@@ -160,10 +163,10 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
         query (str): The keyword to search for
 
     Returns:
-        List[Dict[str, Any]]: The matching articles if found
+        List[Dict[str, Any]]: The matching articles if found or empty list if none found
 
     Raises:
-        ValueError: If no articles are found or query was already processed today
+        ValueError: If query was already processed today
         aiohttp.ClientError: If there's a network error after all retries
     """
     if HashtagStorage.is_hashtag_processed_today(f"{query}_{news_settings.country}"):
@@ -232,7 +235,8 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
                     print(f"✅ Successfully fetched article for {query}")
                     return result
                 else:
-                    raise ValueError(f"🔍 No articles found for query: {query}")
+                    print(f"🔍 No articles found for query: {query}")
+                    return []  # Return empty list instead of raising an exception
 
         except asyncio.TimeoutError:
             print(f"⏱️ Request timeout for query '{query}' on attempt {attempt + 1}/{max_attempts}")
