@@ -63,10 +63,24 @@ def upload_video(
             # Process the upload in chunks without tracking progress
             response = None
             while response is None:
-                status, response = request.next_chunk()
+                try:
+                    status, response = request.next_chunk()
+                except HttpError as e:
+                    if e.resp.status == 308:  # Resume Incomplete
+                        # This is not an error, it's just indicating the upload is not complete
+                        continue
+                    else:
+                        # Actual error, re-raise for outer exception handler
+                        raise
 
-            print(f"✅ Video uploaded! Video ID: {response['id']}")
-            return response["id"]
+            # Validate response format before accessing keys
+            if isinstance(response, dict) and 'id' in response:
+                video_id = response['id']
+                print(f"✅ Video uploaded! Video ID: {video_id}")
+                return video_id
+            else:
+                print(f"⚠️ Unexpected response format: {response}")
+                raise ValueError(f"Unexpected response format from YouTube API: {response}")
 
         except HttpError as e:
             retry_count += 1
