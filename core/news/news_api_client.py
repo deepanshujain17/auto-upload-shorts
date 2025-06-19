@@ -5,7 +5,6 @@ import time
 
 from settings import news_settings
 from utils.commons import get_zulu_time_minus
-from core.news.hashtag_storage import HashtagStorage
 
 # Shared session instance
 _session: aiohttp.ClientSession = None
@@ -50,7 +49,6 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
     }
 
     max_attempts = 4
-    # Define a strict timeout to prevent hanging requests
     timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
 
     for attempt in range(max_attempts):
@@ -63,10 +61,9 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
             # Log when we start making the API call
             print(f"Making API request to GNews for category '{category}'...")
 
-            # Use timeout to prevent hanging requests
-            async with session.get(news_settings.top_headlines_endpoint,
-                                  params=params,
-                                  timeout=timeout) as response:
+            async with session.get(news_settings.top_headline_endpoint,
+                                   params=params,
+                                   timeout=timeout) as response:
 
                 # Log the response status
                 status = response.status
@@ -76,20 +73,17 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
                 if status == 429:  # Too Many Requests
                     if attempt < max_attempts:  # Not the last attempt
                         wait_time = min(2 ** attempt * 2, 10)  # Max 10 seconds wait
-                        print(f"⏳ Rate limited for {category}. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
-                        # Use a timer to verify the sleep is working
+                        print(f"⏳ Rate limited for category '{category}'. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
                         sleep_start = time.time()
                         await asyncio.sleep(wait_time)
                         sleep_end = time.time()
-                        print(f"Sleep completed after {sleep_end - sleep_start:.2f} seconds for {category}")
-                        # Skip to the next iteration
+                        print(f"Sleep completed after {sleep_end - sleep_start:.2f} seconds for '{category}'")
                         continue
                     else:
-                        # This is the last attempt, so we give up
-                        print(f"⚠️ Max retries reached for {category} due to rate limiting")
-                        raise ValueError(f"Failed to fetch {category} after {max_attempts} attempts due to rate limiting")
+                        print(f"⚠️ Max retries reached for '{category}' due to rate limiting")
+                        raise ValueError(f"Failed to fetch results for '{category}' after {max_attempts} attempts due to rate limiting")
 
-                # For other status codes, raise an exception
+                # For other status codes
                 response.raise_for_status()
 
                 # Process the successful response
@@ -97,24 +91,23 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
                 data = await response.json()
                 print(f"JSON parsed successfully for '{category}'")
 
-                articles = data.get("articles", [])
-                if articles:
-                    result = articles[:news_settings.max_articles]
-                    print(f"✅ Successfully fetched article for {category}")
+                found_articles = data.get("articles", [])
+                if found_articles:
+                    result = found_articles[:news_settings.max_articles]
+                    print(f"✅ Successfully fetched {len(result)} article(s) for {category}")
                     return result
                 else:
                     print(f"🔍 No articles found for category: {category}")
                     return []  # Return empty list instead of raising an exception
 
         except asyncio.TimeoutError:
-            # Handle request timeout
-            print(f"⏱️ Request timeout for {category} on attempt {attempt + 1}/{max_attempts}")
+            print(f"⏱️ Request timeout for category '{category}' on attempt {attempt + 1}/{max_attempts}")
             if attempt == max_attempts - 1:  # Last attempt
-                raise ValueError(f"Request timed out for {category} after {max_attempts} attempts")
-            # Add a delay before retrying
+                raise ValueError(f"Request timed out for '{category}' after {max_attempts} attempts")
+            # Add a short delay before retrying
             print(f"Waiting 2 seconds before retrying after timeout...")
             await asyncio.sleep(2)
-            print(f"Timeout wait completed for {category}")
+            print(f"Timeout wait completed for '{category}'")
 
         except aiohttp.ClientResponseError as e:
             # This handles cases where raise_for_status() throws an exception
@@ -157,7 +150,6 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
     """
     Asynchronously fetch news article from GNews API using a search query.
     Implements exponential backoff for rate limiting (HTTP 429).
-    Checks if the query was already processed today to avoid duplicates.
 
     Args:
         query (str): The keyword to search for
@@ -166,12 +158,8 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
         List[Dict[str, Any]]: The matching articles if found or empty list if none found
 
     Raises:
-        ValueError: If query was already processed today
         aiohttp.ClientError: If there's a network error after all retries
     """
-    if HashtagStorage.is_hashtag_processed_today(f"{query}_{news_settings.country}"):
-        raise ValueError(f"🔄 Query '{query}' was already processed today for country {news_settings.country}")
-
     from_time = get_zulu_time_minus(news_settings.minutes_ago)
 
     params = {
@@ -198,8 +186,8 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
             print(f"Making API request to GNews for query '{query}'...")
 
             async with session.get(news_settings.search_endpoint,
-                                  params=params,
-                                  timeout=timeout) as response:
+                                   params=params,
+                                   timeout=timeout) as response:
 
                 # Log the response status
                 status = response.status
@@ -230,8 +218,6 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
                 found_articles = data.get("articles", [])
                 if found_articles:
                     result = found_articles[:2]
-                    # Save the successful query to history with country code
-                    HashtagStorage.save_hashtag(f"{query}_{news_settings.country}")
                     print(f"✅ Successfully fetched article for {query}")
                     return result
                 else:
