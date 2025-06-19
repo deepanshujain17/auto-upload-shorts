@@ -19,14 +19,17 @@ async def fetch_news_article(identifier: str, is_keyword: bool = False) -> list[
             articles = await get_keyword_news(identifier)
             print(f"Trending Keyword Article | {identifier}:\n{articles}")
             if not articles:
-                raise ValueError(f"No article found for keyword: {identifier}")
+                print(f"🔍 No articles found for query: {identifier}")
+                return []  # Return empty list instead of raising an exception
         else:
             articles = await get_category_news(identifier) # identifier is category in this case
             print(f"Trending Category Article | {identifier}:\n{articles}")
             if not articles:
-                raise ValueError(f"No article found for category: {identifier}")
+                print(f"🔍 No articles found for category: {identifier}")
+                return []  # Return empty list instead of raising an exception
 
         return articles
     except Exception as e:
         print(f"Error fetching news for identifier '{identifier}' (is_keyword={is_keyword}): {str(e)}")
+        # Still raise other exceptions that aren't related to no articles found
         raise
