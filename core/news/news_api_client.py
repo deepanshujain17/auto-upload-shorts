@@ -167,7 +167,7 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
         "from": from_time,
         "lang": news_settings.language,
         "country": news_settings.country,
-        "max": news_settings.max_articles,
+        "max": 1,  # Only fetch the first article
         "apikey": news_settings.api_key,
         "sortby": news_settings.sort_by,
     }
@@ -217,7 +217,7 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
 
                 found_articles = data.get("articles", [])
                 if found_articles:
-                    result = found_articles[:2]
+                    result = found_articles[:1]
                     print(f"✅ Successfully fetched article for {query}")
                     return result
                 else:

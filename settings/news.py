@@ -11,7 +11,7 @@ class NewsSettings(BaseModel):
     _country: str = "in"
     minutes_ago: int = 1440
     in_field: str = "title,description"
-    max_articles: int = 1
+    max_articles: int = 2
     sort_by: str = "publishedAt"
     search_endpoint: str = "https://gnews.io/api/v4/search"
     top_headlines_endpoint: str = "https://gnews.io/api/v4/top-headlines"
