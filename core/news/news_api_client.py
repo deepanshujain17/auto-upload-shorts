@@ -61,7 +61,7 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
             # Log when we start making the API call
             print(f"Making API request to GNews for category '{category}'...")
 
-            async with session.get(news_settings.top_headline_endpoint,
+            async with session.get(news_settings.top_headlines_endpoint,
                                    params=params,
                                    timeout=timeout) as response:
 
