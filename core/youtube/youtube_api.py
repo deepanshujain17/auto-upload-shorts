@@ -1,7 +1,11 @@
 from typing import List
+import os
+import socket  # for timeout exceptions
+import time
 
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import Resource
+from googleapiclient.errors import HttpError
 
 from settings import YouTubeSettings
 
@@ -40,9 +44,6 @@ def upload_video(
         "status": {"privacyStatus": privacy_status}
     }
 
-    import os
-    from googleapiclient.errors import HttpError
-
     # Verify file exists and get accurate size
     if not os.path.exists(file_path):
         raise FileNotFoundError(f"Video file not found: {file_path}")
@@ -72,6 +73,9 @@ def upload_video(
                     else:
                         # Actual error, re-raise for outer exception handler
                         raise
+                except (socket.timeout, TimeoutError) as e:
+                    print(f"⚠️ Chunk upload timed out, retrying chunk: {e}")
+                    continue
 
             # Validate response format before accessing keys
             if isinstance(response, dict) and 'id' in response:
@@ -88,13 +92,18 @@ def upload_video(
                 print(f"⚠️ Upload failed (attempt {retry_count}/{max_retries}): {str(e)}")
                 print("Retrying upload...")
                 # Sleep before retry to avoid rate limits
-                import time
                 time.sleep(5)
             else:
                 print(f"❌ Upload failed after {max_retries} attempts: {str(e)}")
                 raise e
         except Exception as e:
             print(f"❌ Unexpected error during upload: {str(e)}")
+            # Retry socket timeout and other transient errors
+            if isinstance(e, (socket.timeout, TimeoutError)) and retry_count < max_retries:
+                retry_count += 1
+                print(f"⚠️ Upload error ({retry_count}/{max_retries}): {str(e)}, retrying...")
+                time.sleep(5)
+                continue
             raise e
 
 
