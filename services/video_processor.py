@@ -140,7 +140,9 @@ async def create_overlay_video_output(category: str, article: dict) -> str:
                     if hasattr(composite_video, 'close'):
                         await _run_in_executor(composite_video.close)
             finally:
-                await _run_in_executor(bg_audio_clip.close)
+                # Safely close background audio clip if available
+                if hasattr(bg_audio_clip, 'close') and bg_audio_clip is not None:
+                    await _run_in_executor(bg_audio_clip.close)
 
             print(f"✅ Overlay Video created successfully: {output_video_path}")
             return output_video_path

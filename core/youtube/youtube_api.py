@@ -1,7 +1,5 @@
 from typing import List
 import os
-import socket  # for timeout exceptions
-import time
 
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import Resource
@@ -51,7 +49,7 @@ def upload_video(
     file_size = os.path.getsize(file_path)
     print(f"Starting upload of file: {file_path} (Size: {file_size} bytes)")
 
-    # Use non-resumable upload to avoid Content-Range size mismatch errors
+    # Simple non-resumable upload
     media = MediaFileUpload(file_path, resumable=False)
     try:
         response = youtube.videos().insert(
@@ -59,9 +57,8 @@ def upload_video(
             body=body,
             media_body=media
         ).execute()
-
-        if isinstance(response, dict) and 'id' in response:
-            video_id = response['id']
+        video_id = response.get('id')
+        if video_id:
             print(f"✅ Video uploaded! Video ID: {video_id}")
             return video_id
         else:
@@ -69,10 +66,10 @@ def upload_video(
             raise ValueError(f"Unexpected response format from YouTube API: {response}")
     except HttpError as e:
         print(f"❌ Upload failed: {e}")
-        raise e
+        raise
     except Exception as e:
-        print(f"❌ Unexpected error during upload: {str(e)}")
-        raise e
+        print(f"❌ Unexpected error during upload: {e}")
+        raise
 
 
 def add_to_playlist(youtube: Resource, video_id: str, category: str) -> None:
