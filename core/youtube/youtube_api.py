@@ -51,60 +51,28 @@ def upload_video(
     file_size = os.path.getsize(file_path)
     print(f"Starting upload of file: {file_path} (Size: {file_size} bytes)")
 
-    # Maximum retry attempts for upload
-    max_retries = 2
-    retry_count = 0
+    # Use non-resumable upload to avoid Content-Range size mismatch errors
+    media = MediaFileUpload(file_path, resumable=False)
+    try:
+        response = youtube.videos().insert(
+            part="snippet,status",
+            body=body,
+            media_body=media
+        ).execute()
 
-    while retry_count < max_retries:
-        try:
-            # Create fresh MediaFileUpload object for each attempt
-            media = MediaFileUpload(file_path, resumable=True, chunksize=1024*1024)
-            request = youtube.videos().insert(part="snippet,status", body=body, media_body=media)
-
-            # Process the upload in chunks without tracking progress
-            response = None
-            while response is None:
-                try:
-                    status, response = request.next_chunk()
-                except HttpError as e:
-                    if e.resp.status == 308:  # Resume Incomplete
-                        # This is not an error, it's just indicating the upload is not complete
-                        continue
-                    else:
-                        # Actual error, re-raise for outer exception handler
-                        raise
-                except (socket.timeout, TimeoutError) as e:
-                    print(f"⚠️ Chunk upload timed out, retrying chunk: {e}")
-                    continue
-
-            # Validate response format before accessing keys
-            if isinstance(response, dict) and 'id' in response:
-                video_id = response['id']
-                print(f"✅ Video uploaded! Video ID: {video_id}")
-                return video_id
-            else:
-                print(f"⚠️ Unexpected response format: {response}")
-                raise ValueError(f"Unexpected response format from YouTube API: {response}")
-
-        except HttpError as e:
-            retry_count += 1
-            if retry_count < max_retries:
-                print(f"⚠️ Upload failed (attempt {retry_count}/{max_retries}): {str(e)}")
-                print("Retrying upload...")
-                # Sleep before retry to avoid rate limits
-                time.sleep(5)
-            else:
-                print(f"❌ Upload failed after {max_retries} attempts: {str(e)}")
-                raise e
-        except Exception as e:
-            print(f"❌ Unexpected error during upload: {str(e)}")
-            # Retry socket timeout and other transient errors
-            if isinstance(e, (socket.timeout, TimeoutError)) and retry_count < max_retries:
-                retry_count += 1
-                print(f"⚠️ Upload error ({retry_count}/{max_retries}): {str(e)}, retrying...")
-                time.sleep(5)
-                continue
-            raise e
+        if isinstance(response, dict) and 'id' in response:
+            video_id = response['id']
+            print(f"✅ Video uploaded! Video ID: {video_id}")
+            return video_id
+        else:
+            print(f"⚠️ Unexpected response format: {response}")
+            raise ValueError(f"Unexpected response format from YouTube API: {response}")
+    except HttpError as e:
+        print(f"❌ Upload failed: {e}")
+        raise e
+    except Exception as e:
+        print(f"❌ Unexpected error during upload: {str(e)}")
+        raise e
 
 
 def add_to_playlist(youtube: Resource, video_id: str, category: str) -> None:
