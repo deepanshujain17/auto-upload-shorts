@@ -34,4 +34,7 @@ def authenticate_youtube():
         with open(TOKEN_PICKLE, "wb") as token:
             pickle.dump(creds, token)
 
-    return build("youtube", "v3", credentials=creds)
+    youtube = build("youtube", "v3", credentials=creds)
+    # Increase HTTP timeout for slower/resumable uploads
+    youtube._http.timeout = 300  # 5 minutes
+    return youtube
