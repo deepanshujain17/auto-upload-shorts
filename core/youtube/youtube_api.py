@@ -52,7 +52,7 @@ def upload_video(
     print(f"Starting upload of file: {file_path} (Size: {file_size} bytes)")
 
     # Maximum retry attempts for upload
-    max_retries = 2
+    max_retries = 5  # increased retries to handle intermittent connection closures
     retry_count = 0
 
     while retry_count < max_retries:
@@ -93,18 +93,19 @@ def upload_video(
                 print("Retrying upload...")
                 # Sleep before retry to avoid rate limits
                 time.sleep(5)
+                continue
             else:
                 print(f"❌ Upload failed after {max_retries} attempts: {str(e)}")
                 raise e
         except Exception as e:
-            print(f"❌ Unexpected error during upload: {str(e)}")
-            # Retry socket timeout and other transient errors
-            if isinstance(e, (socket.timeout, TimeoutError)) and retry_count < max_retries:
-                retry_count += 1
+            retry_count += 1
+            if retry_count < max_retries:
                 print(f"⚠️ Upload error ({retry_count}/{max_retries}): {str(e)}, retrying...")
                 time.sleep(5)
                 continue
-            raise e
+            else:
+                print(f"❌ Upload failed after {max_retries} attempts: {str(e)}")
+                raise e
 
 
 def add_to_playlist(youtube: Resource, video_id: str, category: str) -> None:
