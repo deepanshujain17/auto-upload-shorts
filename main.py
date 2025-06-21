@@ -49,7 +49,7 @@ async def process_categories(yt) -> None:
 
         # Print summary of all fetched articles
         total_categories_articles_fetched = len(all_category_articles)
-        total_articles_fetched = sum(len(articles) for _, articles in all_category_articles.values())
+        total_articles_fetched = sum(len(articles) for articles in all_category_articles.values())
         print(f"\n🔍 Total articles fetched: {total_articles_fetched} for {total_categories_articles_fetched} categories")
 
         # Now process all categories and their articles asynchronously
@@ -114,7 +114,7 @@ async def process_keywords(yt) -> None:
 
         # Print summary of all fetched articles
         total_hashtags_articles_fetched = len(all_hashtag_articles)
-        total_articles_fetched = sum(len(articles) for _, articles in all_hashtag_articles.values())
+        total_articles_fetched = sum(len(articles) for articles in all_hashtag_articles.values())
         print(f"\n🔍 Total articles fetched: {total_articles_fetched} for {total_hashtags_articles_fetched} hashtags")
 
         # Then process all hashtags and their articles asynchronously
