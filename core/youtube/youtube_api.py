@@ -1,5 +1,7 @@
 from typing import List
 import os
+import time
+from ssl import SSLError
 
 from googleapiclient.http import MediaFileUpload
 from googleapiclient.discovery import Resource
@@ -49,27 +51,39 @@ def upload_video(
     file_size = os.path.getsize(file_path)
     print(f"Starting upload of file: {file_path} (Size: {file_size} bytes)")
 
-    # Simple non-resumable upload
-    media = MediaFileUpload(file_path, resumable=False)
-    try:
-        response = youtube.videos().insert(
-            part="snippet,status",
-            body=body,
-            media_body=media
-        ).execute()
-        video_id = response.get('id')
-        if video_id:
-            print(f"✅ Video uploaded! Video ID: {video_id}")
-            return video_id
-        else:
-            print(f"⚠️ Unexpected response format: {response}")
-            raise ValueError(f"Unexpected response format from YouTube API: {response}")
-    except HttpError as e:
-        print(f"❌ Upload failed: {e}")
-        raise
-    except Exception as e:
-        print(f"❌ Unexpected error during upload: {e}")
-        raise
+    # Retry logic for non-resumable upload
+    max_retries = 3
+    for attempt in range(1, max_retries + 1):
+        try:
+            media = MediaFileUpload(file_path, resumable=False)
+            response = youtube.videos().insert(
+                part="snippet,status",
+                body=body,
+                media_body=media
+            ).execute()
+            video_id = response.get('id')
+            if video_id:
+                print(f"✅ Video uploaded! Video ID: {video_id}")
+                return video_id
+            else:
+                print(f"⚠️ Unexpected response format: {response}")
+                raise ValueError(f"Unexpected response format from YouTube API: {response}")
+        except (HttpError, SSLError) as e:
+            if attempt < max_retries:
+                backoff = 2 ** (attempt - 1)
+                print(f"⚠️ Upload attempt {attempt} failed: {e}. Retrying in {backoff}s...")
+                time.sleep(backoff)
+                continue
+            print(f"❌ All {max_retries} upload attempts failed: {e}")
+            raise
+        except Exception as e:
+            if attempt < max_retries and 'EOF occurred in violation of protocol' in str(e):
+                backoff = 2 ** (attempt - 1)
+                print(f"⚠️ Upload attempt {attempt} encountered SSL EOF error: {e}. Retrying in {backoff}s...")
+                time.sleep(backoff)
+                continue
+            print(f"❌ Upload failed on attempt {attempt}: {e}")
+            raise
 
 
 def add_to_playlist(youtube: Resource, video_id: str, category: str) -> None:
