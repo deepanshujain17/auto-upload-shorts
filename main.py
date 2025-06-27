@@ -123,7 +123,7 @@ async def process_keywords(yt) -> None:
 
         # Print summary of all fetched articles
         total_hashtags_articles_fetched = len(all_hashtag_articles)
-        total_articles_fetched = sum(len(articles) for articles in all_hashtag_articles.values())
+        total_articles_fetched = sum(len(articles) for query, articles in all_hashtag_articles.values())
         print(f"\n🔍 Total articles fetched: {total_articles_fetched} for {total_hashtags_articles_fetched} hashtags")
 
         # Now process hashtags with limited concurrency (max 3 hashtags in parallel)
