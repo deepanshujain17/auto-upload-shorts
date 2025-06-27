@@ -217,9 +217,8 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
 
                 found_articles = data.get("articles", [])
                 if found_articles:
-                    result = found_articles[:1]
                     print(f"✅ Successfully fetched article for {query}")
-                    return result
+                    return found_articles
                 else:
                     print(f"🔍 No articles found for query: {query}")
                     return []  # Return empty list instead of raising an exception

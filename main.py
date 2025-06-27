@@ -52,28 +52,37 @@ async def process_categories(yt) -> None:
         total_articles_fetched = sum(len(articles) for articles in all_category_articles.values())
         print(f"\n🔍 Total articles fetched: {total_articles_fetched} for {total_categories_articles_fetched} categories")
 
-        # Now process all categories and their articles asynchronously
+        # Now process categories with limited concurrency (max 3 categories in parallel)
         async def process_category_articles(category, articles):
             try:
                 print(f"\n\n\n📌 Processing category: {category} with {len(articles)} articles")
 
-                # Process articles concurrently
+                # Process articles concurrently (since max 2 articles per category)
                 tasks = [process_article(yt, category, article) for article in articles]
-                await asyncio.gather(*tasks)
+                await asyncio.gather(*tasks, return_exceptions=True)
 
                 print(f"✅ Successfully processed category: {category}")
             except Exception as e:
                 print(f"⚠️ Error processing category {category}: {str(e)}")
 
-        # Create tasks for processing all categories concurrently
+        # Limit concurrent category processing to max 3 using semaphore
+        semaphore = asyncio.Semaphore(3)
+
+        async def process_category_with_semaphore(category, articles):
+            async with semaphore:
+                await process_category_articles(category, articles)
+                # Add small delay between category batches to reduce server load
+                await asyncio.sleep(1)
+
+        # Create tasks for processing categories with limited concurrency
         category_tasks = [
-            process_category_articles(category, articles)
+            process_category_with_semaphore(category, articles)
             for category, articles in all_category_articles.items()
             if articles  # Skip categories with no articles
         ]
 
         if category_tasks:
-            await asyncio.gather(*category_tasks)
+            await asyncio.gather(*category_tasks, return_exceptions=True)
             print("\n✅ Successfully processed all categories")
         else:
             print("\n⚠️ No articles found for any category")
@@ -114,32 +123,41 @@ async def process_keywords(yt) -> None:
 
         # Print summary of all fetched articles
         total_hashtags_articles_fetched = len(all_hashtag_articles)
-        total_articles_fetched = sum(len(articles) for articles in all_hashtag_articles.values())
+        total_articles_fetched = sum(len(articles) for query, articles in all_hashtag_articles.values())
         print(f"\n🔍 Total articles fetched: {total_articles_fetched} for {total_hashtags_articles_fetched} hashtags")
 
-        # Then process all hashtags and their articles asynchronously
+        # Now process hashtags with limited concurrency (max 3 hashtags in parallel)
         async def process_hashtag_articles(hashtag, query_articles_tuple):
             try:
                 query, articles = query_articles_tuple
                 print(f"\n\n\n🔍 Processing hashtag: {hashtag} with {len(articles)} articles")
 
-                # Process articles concurrently
+                # Process articles concurrently within each hashtag
                 tasks = [process_article(yt, query, article, hashtag) for article in articles]
-                await asyncio.gather(*tasks)
+                await asyncio.gather(*tasks, return_exceptions=True)
 
                 print(f"✅ Successfully processed hashtag: {hashtag}")
             except Exception as e:
                 print(f"⚠️ Error processing hashtag {hashtag}: {str(e)}")
 
-        # Create tasks for processing all hashtags concurrently
+        # Limit concurrent hashtag processing to max 3 using semaphore
+        semaphore = asyncio.Semaphore(3)
+
+        async def process_hashtag_with_semaphore(hashtag, query_articles):
+            async with semaphore:
+                await process_hashtag_articles(hashtag, query_articles)
+                # Add small delay between hashtag batches to reduce server load
+                await asyncio.sleep(1)
+
+        # Create tasks for processing hashtags with limited concurrency
         hashtag_tasks = [
-            process_hashtag_articles(hashtag, query_articles)
+            process_hashtag_with_semaphore(hashtag, query_articles)
             for hashtag, query_articles in all_hashtag_articles.items()
             if query_articles[1]  # Skip hashtags with no articles
         ]
 
         if hashtag_tasks:
-            await asyncio.gather(*hashtag_tasks)
+            await asyncio.gather(*hashtag_tasks, return_exceptions=True)
             print("\n✅ Successfully processed all hashtags")
         else:
             print("\n⚠️ No articles found for any hashtag")
