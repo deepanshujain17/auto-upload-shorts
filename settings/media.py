@@ -20,7 +20,7 @@ class AudioSettings:
 
     # AWS Polly voice settings
     DEFAULT_VOICE_ID = "Joanna"
-    DEFAULT_ENGINE = "generative"
+    DEFAULT_ENGINE = "neural"
     DEFAULT_TEXT_TYPE = "ssml"
 
     # SSML settings
