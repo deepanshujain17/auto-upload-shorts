@@ -1,6 +1,6 @@
 from .news import NewsSettings, news_settings
 from .presentation import HTMLSettings
-from .media import VideoSettings, AudioSettings
+from .media import VideoSettings, AudioSettings, audio_settings
 from .youtube import YouTubeSettings
 from .paths import PathSettings
 from .trending import TrendingSettings
@@ -11,6 +11,7 @@ __all__ = [
     'HTMLSettings',
     'VideoSettings',
     'AudioSettings',
+    'audio_settings',
     'YouTubeSettings',
     'PathSettings',
     'TrendingSettings'
