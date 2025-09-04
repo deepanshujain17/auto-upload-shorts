@@ -9,8 +9,9 @@ from services.auth import authenticate_youtube
 from services.fetch_news import fetch_news_article
 from services.shorts_uploader import upload_youtube_shorts
 from services.video_processor import create_overlay_video_output
-from settings import news_settings, PathSettings, TrendingSettings
+from settings import news_settings, audio_settings, PathSettings, TrendingSettings
 from utils.commons import normalize_hashtag
+from settings.config import get_env_var
 
 
 async def process_article(yt, category: str, article: dict, hashtag: str = None) -> None:
@@ -181,6 +182,17 @@ async def async_main() -> None:
         process_type = sys.argv[1].lower() if len(sys.argv) > 1 else "all"
         country_arg = sys.argv[2].lower() if len(sys.argv) > 2 else "in"
 
+        # Parse language argument as fourth argument
+        if len(sys.argv) > 3:
+            lang_arg = sys.argv[3].lower()
+            if lang_arg in ['hi', 'en']:
+                news_settings.language = lang_arg
+                if lang_arg == 'hi':
+                    print("🇮🇳 Using Hindi language settings")
+                    news_settings.api_key = get_env_var("GNEWS_HI_API_KEY")
+                    audio_settings.DEFAULT_VOICE_ID = "Kajal"
+
+
         if process_type not in ["all", "categories", "keywords"]:
             print(f"Invalid process type: {process_type}")
             sys.exit(1)
@@ -190,6 +202,8 @@ async def async_main() -> None:
         except ValueError as e:
             print(f"Invalid country code: {country_arg}. {str(e)}")
             sys.exit(1)
+
+        print(f"🌐 Using country: {news_settings.country}, language: {getattr(news_settings, 'language', 'default')}")
 
         # Authenticate to YouTube
         print("🔐 Authenticating to YouTube...")

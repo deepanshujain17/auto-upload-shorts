@@ -27,3 +27,6 @@ class AudioSettings:
     PROSODY_RATE = "100%"
     PROSODY_VOLUME = "loud"
     PROSODY_PITCH = "0%"
+
+# Create a global instance
+audio_settings = AudioSettings()
