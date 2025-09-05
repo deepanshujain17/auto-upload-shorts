@@ -48,6 +48,9 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
         "sortby": news_settings.sort_by,
     }
 
+    print("parameters for GNews API request:\n")
+    print(params)
+
     max_attempts = 4
     timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
 
@@ -66,6 +69,7 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
                                    timeout=timeout) as response:
 
                 # Log the response status
+                print(f"Response status: {response.status}")
                 status = response.status
                 print(f"Received response with status {status} for '{category}'")
 
@@ -83,6 +87,7 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
                         print(f"⚠️ Max retries reached for '{category}' due to rate limiting")
                         raise ValueError(f"Failed to fetch results for '{category}' after {max_attempts} attempts due to rate limiting")
 
+                print("Response status checked, proceeding...")
                 # For other status codes
                 response.raise_for_status()
 
