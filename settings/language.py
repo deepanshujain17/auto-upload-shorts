@@ -20,17 +20,10 @@ _LANG_CONFIG: dict[str, dict[str, str]] = {
 
 
 def apply_language(lang_code: str) -> None:
-    """Apply language-specific settings across the app.
+    """Apply language-specific settings and validate API key.
 
-    - Sets news_settings.language
-    - Chooses the correct GNews API key from env vars
-    - Sets the default TTS voice for AWS Polly
-
-    Args:
-        lang_code: Language code like "en" or "hi".
-
-    Raises:
-        ValueError: If the language code is unsupported or API key missing.
+    Uses the language-specific env var first, then falls back to GNEWS_API_KEY.
+    Raises ValueError only if both are missing.
     """
     code = (lang_code or "").strip().lower()
     if code not in _LANG_CONFIG:
@@ -41,13 +34,16 @@ def apply_language(lang_code: str) -> None:
     # Update language setting
     news_settings.language = cfg.get("language", code)
 
-    # Update API key based on language with validation
-    api_key_env = cfg["api_key_env"]
-    api_key = get_env_var(api_key_env)
+    # Resolve API key with fallback to the default env var
+    primary_env = cfg["api_key_env"]
+    api_key = get_env_var(primary_env)
     if not api_key:
-        raise ValueError(
-            f"Missing API key for language '{code}'. Set the environment variable {api_key_env}."
-        )
+        fallback_env = "GNEWS_API_KEY"
+        api_key = get_env_var(fallback_env)
+        if not api_key:
+            raise ValueError(
+                f"Missing API key for language '{code}'. Set {primary_env} (preferred) or {fallback_env}."
+            )
     news_settings.api_key = api_key
 
     # Update default voice for Polly
