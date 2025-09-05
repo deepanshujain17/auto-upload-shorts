@@ -30,7 +30,7 @@ def apply_language(lang_code: str) -> None:
         lang_code: Language code like "en" or "hi".
 
     Raises:
-        ValueError: If the language code is unsupported.
+        ValueError: If the language code is unsupported or API key missing.
     """
     code = (lang_code or "").strip().lower()
     if code not in _LANG_CONFIG:
@@ -41,9 +41,14 @@ def apply_language(lang_code: str) -> None:
     # Update language setting
     news_settings.language = cfg.get("language", code)
 
-    # Update API key based on language
+    # Update API key based on language with validation
     api_key_env = cfg["api_key_env"]
-    news_settings.api_key = get_env_var(api_key_env)
+    api_key = get_env_var(api_key_env)
+    if not api_key:
+        raise ValueError(
+            f"Missing API key for language '{code}'. Set the environment variable {api_key_env}."
+        )
+    news_settings.api_key = api_key
 
     # Update default voice for Polly
     audio_settings.DEFAULT_VOICE_ID = cfg["voice_id"]

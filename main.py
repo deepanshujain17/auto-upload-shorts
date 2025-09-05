@@ -182,14 +182,22 @@ async def async_main() -> None:
         process_type = sys.argv[1].lower() if len(sys.argv) > 1 else "all"
         country_arg = sys.argv[2].lower() if len(sys.argv) > 2 else "in"
 
-        # Parse language argument as fourth argument
+        # Apply language: from CLI arg if present, else default to 'en'
         if len(sys.argv) > 3:
             lang_arg = sys.argv[3].lower()
             try:
                 apply_language(lang_arg)
                 print(f"🗣️ Applied language: {news_settings.language}")
-            except ValueError:
-                print(f"Unsupported language code: {lang_arg}. Using default language: {news_settings.language}")
+            except ValueError as e:
+                print(str(e))
+                sys.exit(1)
+        else:
+            try:
+                apply_language("en")
+                print(f"🗣️ Applied default language: {news_settings.language}")
+            except ValueError as e:
+                print(str(e))
+                sys.exit(1)
 
         if process_type not in ["all", "categories", "keywords"]:
             print(f"Invalid process type: {process_type}")

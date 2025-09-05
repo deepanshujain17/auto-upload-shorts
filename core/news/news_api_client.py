@@ -1,13 +1,13 @@
 import asyncio
 import aiohttp
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 import time
 
 from settings import news_settings
 from utils.commons import get_zulu_time_minus
 
 # Shared session instance
-_session: aiohttp.ClientSession = None
+_session: Optional[aiohttp.ClientSession] = None
 
 async def get_session() -> aiohttp.ClientSession:
     """Get or create the shared aiohttp ClientSession."""
@@ -24,6 +24,23 @@ async def close_session():
     if _session and not _session.closed:
         await _session.close()
 
+
+def _require_api_key(context: str) -> None:
+    """Ensure a non-empty API key is configured before making requests.
+
+    Args:
+        context: A short label like 'category' or 'keyword' for error messages.
+
+    Raises:
+        ValueError: If the API key is missing.
+    """
+    if not getattr(news_settings, "api_key", None):
+        lang = getattr(news_settings, "language", "en")
+        expected_env = "GNEWS_HI_API_KEY" if lang == "hi" else "GNEWS_API_KEY"
+        raise ValueError(
+            f"Missing GNews API key for {context} requests. Set {expected_env} and ensure apply_language('{lang}') runs before API calls."
+        )
+
 async def get_category_news(category=None) -> List[Dict[str, Any]]:
     """
     Asynchronously fetch news articles from GNews API for given categories
@@ -35,6 +52,9 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
     Raises:
         aiohttp.ClientError: If there's a network error after all retries
     """
+    # Validate API key before making any requests
+    _require_api_key("category")
+
     print(f"📰 Fetching news for category: {category}")
     from_time = get_zulu_time_minus(news_settings.minutes_ago)
 
@@ -69,7 +89,6 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
                                    timeout=timeout) as response:
 
                 # Log the response status
-                print(f"Response status: {response.status}")
                 status = response.status
                 print(f"Received response with status {status} for '{category}'")
 
@@ -87,7 +106,6 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
                         print(f"⚠️ Max retries reached for '{category}' due to rate limiting")
                         raise ValueError(f"Failed to fetch results for '{category}' after {max_attempts} attempts due to rate limiting")
 
-                print("Response status checked, proceeding...")
                 # For other status codes
                 response.raise_for_status()
 
@@ -110,7 +128,7 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
             if attempt == max_attempts - 1:  # Last attempt
                 raise ValueError(f"Request timed out for '{category}' after {max_attempts} attempts")
             # Add a short delay before retrying
-            print(f"Waiting 2 seconds before retrying after timeout...")
+            print("Waiting 2 seconds before retrying after timeout...")
             await asyncio.sleep(2)
             print(f"Timeout wait completed for '{category}'")
 
@@ -165,6 +183,9 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
     Raises:
         aiohttp.ClientError: If there's a network error after all retries
     """
+    # Validate API key before making any requests
+    _require_api_key("keyword")
+
     from_time = get_zulu_time_minus(news_settings.minutes_ago)
 
     params = {
@@ -233,7 +254,7 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
             if attempt == max_attempts - 1:  # Last attempt
                 raise ValueError(f"Request timed out for '{query}' after {max_attempts} attempts")
             # Add a short delay before retrying
-            print(f"Waiting 2 seconds before retrying after timeout...")
+            print("Waiting 2 seconds before retrying after timeout...")
             await asyncio.sleep(2)
             print(f"Timeout wait completed for '{query}'")
 
