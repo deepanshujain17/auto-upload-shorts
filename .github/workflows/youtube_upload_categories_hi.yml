@@ -48,7 +48,7 @@ jobs:
 
       - name: Setup environment and secrets
         run: |
-          echo "GNEWS_API_KEY=${{ secrets.GNEWS_API_KEY }}" > .env
+          echo "GNEWS_HI_API_KEY=${{ secrets.GNEWS_HI_API_KEY }}" > .env
           echo "${{ secrets.TOKEN_HI_PKL_B64 }}" | base64 -d > token_hi.pkl
           echo "${{ secrets.CLIENT_SECRETS_B64 }}" | base64 -d > client_secrets.json
 
