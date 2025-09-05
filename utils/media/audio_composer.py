@@ -7,7 +7,7 @@ from concurrent.futures import ThreadPoolExecutor
 
 from moviepy.audio.AudioClip import AudioArrayClip, CompositeAudioClip
 
-from settings import AudioSettings, PathSettings
+from settings import audio_settings, PathSettings
 from utils.media.audio_utils import convert_text_to_speech
 from utils.media.ssml_text_generator import TextProcessor
 
@@ -75,12 +75,13 @@ class AudioComposer:
         print("🎙️ Generating audio from processed text")
 
         # Run the CPU-intensive text-to-speech in executor
+        print(f"default voice: {audio_settings.DEFAULT_VOICE_ID}, engine: {audio_settings.DEFAULT_ENGINE}")
         audio = await _run_in_audio_executor(
             convert_text_to_speech,
             ssml_text,
-            AudioSettings.DEFAULT_VOICE_ID,
-            AudioSettings.DEFAULT_ENGINE,
-            AudioSettings.DEFAULT_TEXT_TYPE
+            audio_settings.DEFAULT_VOICE_ID,
+            audio_settings.DEFAULT_ENGINE,
+            audio_settings.DEFAULT_TEXT_TYPE
         )
 
         # Cache the result
