@@ -103,12 +103,12 @@ class AudioComposer:
             # Scale speech audio volume
             scaled_speech = await _run_in_audio_executor(
                 speech_audio.with_volume_scaled,
-                AudioSettings.SPEECH_VOLUME
+                audio_settings.SPEECH_VOLUME
             )
 
             # Cut music to match speech duration and reduce volume
             music_audio = await _run_in_audio_executor(
-                lambda: music_audio_clip.with_duration(duration).with_volume_scaled(AudioSettings.BACKGROUND_MUSIC_VOLUME)
+                lambda: music_audio_clip.with_duration(duration).with_volume_scaled(audio_settings.BACKGROUND_MUSIC_VOLUME)
             )
 
             # Create composite audio
