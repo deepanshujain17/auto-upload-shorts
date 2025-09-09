@@ -68,9 +68,6 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
         "sortby": news_settings.sort_by,
     }
 
-    print("parameters for GNews API request:\n")
-    print(params)
-
     max_attempts = 4
     timeout = aiohttp.ClientTimeout(total=10)  # 10 second timeout
 
