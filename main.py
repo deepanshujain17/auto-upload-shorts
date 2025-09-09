@@ -9,9 +9,9 @@ from services.auth import authenticate_youtube
 from services.fetch_news import fetch_news_article
 from services.shorts_uploader import upload_youtube_shorts
 from services.video_processor import create_overlay_video_output
-from settings import news_settings, audio_settings, PathSettings, TrendingSettings
+from settings import news_settings, PathSettings, TrendingSettings
 from utils.commons import normalize_hashtag
-from settings.config import get_env_var
+from settings.language import apply_language
 
 
 async def process_article(yt, category: str, article: dict, hashtag: str = None) -> None:
@@ -182,16 +182,22 @@ async def async_main() -> None:
         process_type = sys.argv[1].lower() if len(sys.argv) > 1 else "all"
         country_arg = sys.argv[2].lower() if len(sys.argv) > 2 else "in"
 
-        # Parse language argument as fourth argument
+        # Apply language: from CLI arg if present, else default to 'en'
         if len(sys.argv) > 3:
             lang_arg = sys.argv[3].lower()
-            if lang_arg in ['hi', 'en']:
-                news_settings.language = lang_arg
-                if lang_arg == 'hi':
-                    print("🇮🇳 Using Hindi language settings")
-                    news_settings.api_key = get_env_var("GNEWS_HI_API_KEY")
-                    audio_settings.DEFAULT_VOICE_ID = "Kajal"
-
+            try:
+                apply_language(lang_arg)
+                print(f"🗣️ Applied language: {news_settings.language}")
+            except ValueError as e:
+                print(str(e))
+                sys.exit(1)
+        else:
+            try:
+                apply_language("en")
+                print(f"🗣️ Applied default language: {news_settings.language}")
+            except ValueError as e:
+                print(str(e))
+                sys.exit(1)
 
         if process_type not in ["all", "categories", "keywords"]:
             print(f"Invalid process type: {process_type}")
