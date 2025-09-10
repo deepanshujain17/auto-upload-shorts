@@ -218,7 +218,7 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
 
                 # Handle rate limiting with exponential backoff
                 if status == 429:
-                    if attempt < max_attempts:  # Not the last attempt
+                    if attempt < max_attempts - 1:  # Not the last attempt
                         wait_time = min(2 ** attempt * 2, 10)  # Max 10 seconds wait
                         print(f"⏳ Rate limited for query '{query}'. Waiting {wait_time} seconds before retry {attempt + 1}/{max_attempts}")
                         sleep_start = time.time()
@@ -228,7 +228,7 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
                         continue
                     else:
                         print(f"⚠️ Max retries reached for '{query}' due to rate limiting")
-                        raise ValueError(f"Failed to fetch results for '{query}' after {max_attempts} attempts due to rate limiting")
+                        return []  # Return empty list instead of raising exception
 
                 # For other status codes
                 response.raise_for_status()
@@ -249,7 +249,8 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
         except asyncio.TimeoutError:
             print(f"⏱️ Request timeout for query '{query}' on attempt {attempt + 1}/{max_attempts}")
             if attempt == max_attempts - 1:  # Last attempt
-                raise ValueError(f"Request timed out for '{query}' after {max_attempts} attempts")
+                print(f"⚠️ Final timeout for query '{query}' after {max_attempts} attempts")
+                return []  # Return empty list instead of raising exception
             # Add a short delay before retrying
             print("Waiting 2 seconds before retrying after timeout...")
             await asyncio.sleep(2)
@@ -265,14 +266,14 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
                 sleep_end = time.time()
                 print(f"Sleep completed after {sleep_end - sleep_start:.2f} seconds for '{query}'")
             else:
-                # For other status codes or last attempt, propagate the error
-                print(f"Network error for query '{query}': {e.status}, message='{e.message}', url='{e.request_info.url}'")
-                raise
+                # For other status codes or last attempt, log and return empty list
+                print(f"⚠️ Network error for query '{query}': {e.status}, message='{e.message}', url='{e.request_info.url}'")
+                return []  # Return empty list instead of raising exception
 
         except aiohttp.ClientError as e:
             if attempt == max_attempts - 1:  # Last attempt
-                print(f"Network error while fetching news for query '{query}': {str(e)}")
-                raise
+                print(f"⚠️ Network error while fetching news for query '{query}': {str(e)}")
+                return []  # Return empty list instead of raising exception
             wait_time = min(2 ** attempt * 2, 10)
             print(f"⚠️ Network error on attempt {attempt + 1}/{max_attempts} for query '{query}'. Waiting {wait_time} seconds before retry...")
             sleep_start = time.time()
@@ -281,12 +282,13 @@ async def get_keyword_news(query: str) -> List[Dict[str, Any]]:
             print(f"Sleep completed after {sleep_end - sleep_start:.2f} seconds for '{query}'")
 
         except Exception as e:
-            print(f"Unexpected error while fetching news for query '{query}': {str(e)}")
+            print(f"⚠️ Unexpected error while fetching news for query '{query}': {str(e)}")
             import traceback
             traceback.print_exc()
-            raise
+            return []  # Return empty list instead of raising exception
 
         print(f"Completed attempt {attempt + 1}/{max_attempts} for '{query}' in {time.time() - start_time:.2f} seconds")
 
     # If we get here, all retries failed
-    raise aiohttp.ClientError(f"Failed to fetch news for query '{query}' after {max_attempts} attempts")
+    print(f"⚠️ Failed to fetch news for query '{query}' after {max_attempts} attempts")
+    return []  # Return empty list instead of raising exception
