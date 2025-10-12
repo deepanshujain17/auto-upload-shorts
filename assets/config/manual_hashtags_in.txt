@@ -4,9 +4,9 @@ Bollywood
 Actress
 Cricket
 War
-Relationship
+Breaking
 Shocking
-Influencer
+Internet
 Celebrity
 Father
 Mother
@@ -17,5 +17,5 @@ Love
 Emotional
 Festival
 Celebration
-Breaks
-Internet
+Relationship
+Influencer
