@@ -3,8 +3,10 @@ from .config import get_env_var
 
 class NewsSettings(BaseModel):
     api_key: str = Field(default=get_env_var("GNEWS_API_KEY"))
-    categories: list[str] = ["general", "sports", "world", "nation", "business",
-                            "technology", "entertainment", "science", "health"]
+    # categories: list[str] = ["general", "sports", "world", "nation", "business",
+    #                         "technology", "entertainment", "science", "health"]
+    categories: list[str] = ["general", "sports", "world", "nation",
+                             "technology", "entertainment"]
     category_bgm: dict = {"default": "bgm_find"}
     category_bg_image: dict = {"default": "bg_image"}
     language: str = "en"
