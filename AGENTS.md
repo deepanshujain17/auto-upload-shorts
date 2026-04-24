@@ -208,6 +208,7 @@ At runtime the workflows decode secrets into repo root:
 ## Security notes (secrets + sensitive files)
 - **Never commit**:
   - `client_secrets.json`, `token*.pkl`, `.env`, or any rendered outputs that may contain sensitive data.
+  -  Any committed files under output/ are intentional sample artifacts and should not be updated/extended
 - **CI secret handling**:
   - Workflows decode `CLIENT_SECRETS_B64` and token secrets into repo root at runtime. Keep that behavior confined to the runner and avoid uploading these files as artifacts.
 - **Credential scope**:
