@@ -152,6 +152,68 @@ At runtime the workflows decode secrets into repo root:
 - **Non-fatal empties**: missing/empty news results should remain non-fatal; continue iterating across categories/keywords.
 - **Legacy scripts**: treat `others/archive_scripts/` as legacy reference, not part of the active pipeline.
 
+## Engineering standards (coding + contribution)
+- **Linting / formatting**:
+  - CI currently does **not** run a linter/formatter; run these locally before opening a PR.
+  - Recommended (fast, minimal setup): Ruff.
+    - Install: `pip install ruff`
+    - Format: `ruff format .`
+    - Lint: `ruff check .`
+    - Auto-fix safe issues: `ruff check . --fix`
+  - If you introduce a linter/formatter in CI (recommended), add a `pyproject.toml` with the config and keep the commands in this section in sync with CI.
+- **Project boundaries**:
+  - `core/`: external API clients + request/response translation (GNews/Trends/YouTube)
+  - `services/`: orchestration and pipeline-level workflows
+  - `utils/`: reusable primitives (rendering, media composition, metadata, locking)
+  - Keep cross-layer imports clean (e.g. `core/*` should not import `services/*`).
+- **Async discipline**:
+  - Don’t block the event loop with CPU-heavy work (FFmpeg/MoviePy, image processing). Keep those in executor/subprocess patterns already used.
+  - Keep concurrency bounded with semaphores; avoid fan-out patterns that scale with input size without a limiter.
+- **Error handling**:
+  - Prefer “continue on item failure” for fetch/render/compose steps so one bad article doesn’t stop a run.
+  - Be explicit about what is fatal (e.g. missing creds) vs non-fatal (e.g. empty news results).
+- **Logging**:
+  - Keep logs action-oriented: include country/language, mode (categories/keywords), and an identifier for the item being processed (e.g. category/keyword + article url/title).
+  - When adding new steps, log start/end + key outputs (paths, durations) to make CI troubleshooting possible.
+- **Dependencies**:
+  - Add new deps only when necessary; prefer stdlib. If you add one, pin it in `requirements.txt` and note why in the PR/commit message.
+
+## Performance, quotas, and resource budgets
+- **External limits**: GNews, AWS Polly, and YouTube APIs all have rate limits/quotas. Keep concurrency bounded and add backoff/retry where appropriate.
+- **Budgets (document + keep stable)**:
+  - End-to-end CI runtime target (per workflow) should be stable; if you change it materially, update this file and workflows accordingly.
+  - Video constraints (duration, resolution, fps/bitrate) have a direct impact on encode time and upload reliability—keep them consistent and document any changes.
+- **Retries/backoff**:
+  - Network calls should be resilient to transient failures (timeouts/5xx). If you introduce new API calls, follow existing retry patterns (or add a shared one in `core/`).
+- **Artifacts**:
+  - Prefer writing intermediate artifacts (html, screenshot, audio) in a predictable location so failures can be debugged and (optionally) uploaded as CI artifacts.
+
+## Reliability and idempotency (CI-safe behavior)
+- **Partial failures**: pipeline should continue across categories/keywords when an individual item fails; record the failure and move on.
+- **Reruns**: GitHub Actions reruns should be safe. If you add steps that can duplicate uploads, introduce or document an idempotency key (e.g. derived from article URL + date + language).
+- **Cleanup**: preserve `finally` cleanup patterns so reruns don’t pile up processes or leave the workspace in a bad state.
+
+## Troubleshooting (common issues)
+- **Selenium/Chrome**:
+  - Symptom: driver mismatch / cannot start browser → verify Chrome/Chromium is installed and the driver manager can fetch a compatible driver.
+  - Symptom: missing fonts (especially `hi`) → ensure the Hindi workflow installs Devanagari fonts.
+- **FFmpeg/MoviePy**:
+  - Symptom: encode/mux failures → confirm `ffmpeg` is installed and available on PATH in the runner.
+- **YouTube auth**:
+  - Symptom: token expired/invalid → regenerate `token.pkl`/`token_hi.pkl` locally and update the corresponding GitHub secret.
+  - Symptom: quota exceeded → reduce upload frequency/volume or adjust workflow schedule; keep bounded concurrency.
+- **AWS Polly**:
+  - Symptom: auth/permission errors → confirm CI AWS creds and region; validate Polly permissions for the configured voices.
+
+## Security notes (secrets + sensitive files)
+- **Never commit**:
+  - `client_secrets.json`, `token*.pkl`, `.env`, or any rendered outputs that may contain sensitive data.
+- **CI secret handling**:
+  - Workflows decode `CLIENT_SECRETS_B64` and token secrets into repo root at runtime. Keep that behavior confined to the runner and avoid uploading these files as artifacts.
+- **Credential scope**:
+  - Keep AWS permissions minimal (Polly-only is ideal).
+  - Treat YouTube OAuth tokens as production credentials; rotate/revoke if leaked.
+
 ## If you change the pipeline
 Update this file if you change any of:
 - CLI args / defaults in `main.py`
