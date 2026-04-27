@@ -34,7 +34,7 @@ async def get_category_news(category=None) -> List[Dict[str, Any]]:
         ValueError: If no articles are found for the given category
         aiohttp.ClientError: If there's a network error after all retries
     """
-    print(f"📰 Fetching news for category: {category}")
+    logging.info(f"📰 Fetching news for category: {category}")
     from_time = get_zulu_time_minus(news_settings.minutes_ago)
 
     params = {
