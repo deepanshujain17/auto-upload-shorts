@@ -1,20 +1,34 @@
+"""Idempotency store: append-only JSONL of upload keys to avoid duplicate uploads on reruns."""
+
+import asyncio
 import hashlib
 import json
 import os
+import uuid
+from contextlib import asynccontextmanager
 from datetime import datetime, timezone
-from typing import Any, Dict, Optional
+from typing import Any, AsyncIterator, Dict, Optional
 
 from utils.file_lock import FileLock
 
+_upload_key_locks: Dict[str, asyncio.Lock] = {}
+_upload_key_locks_guard = asyncio.Lock()
 
-"""
-# Ensures uploads are not duplicated on reruns.
 
-Usage (current pipeline):
-- `services/shorts_uploader.py` computes a key via `make_upload_key(...)`
-- It calls `was_uploaded(...)` before uploading to skip duplicates on reruns
-- On success, it calls `mark_uploaded(...)` to append to `output/history/uploaded.jsonl`
-"""
+@asynccontextmanager
+async def serialize_same_upload_key(key: str) -> AsyncIterator[None]:
+    """
+    Serialize was_uploaded → upload → mark_uploaded for one idempotency key.
+
+    Without this, concurrent tasks with the same key can both pass was_uploaded
+    before either appends to the store (TOCTOU). Unrelated keys still run in parallel.
+    """
+    async with _upload_key_locks_guard:
+        if key not in _upload_key_locks:
+            _upload_key_locks[key] = asyncio.Lock()
+        lock = _upload_key_locks[key]
+    async with lock:
+        yield
 
 
 def _stable_article_id(article: Dict[str, Any]) -> str:
@@ -32,7 +46,10 @@ def _stable_article_id(article: Dict[str, Any]) -> str:
         return url
     title = (article.get("title") or "").strip()
     published = (article.get("publishedAt") or "").strip()
-    return f"{title}::{published}"
+    if title or published:
+        return f"{title}::{published}"
+    # No stable identity: avoid "::" colliding across different malformed rows in one run.
+    return f"unknown::{uuid.uuid4().hex}"
 
 
 def make_upload_key(*, article: Dict[str, Any], country: str, language: str) -> str:

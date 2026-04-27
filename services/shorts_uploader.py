@@ -12,7 +12,12 @@ from utils.metadata.metadata_utils import (
     generate_video_tags,
     generate_video_title
 )
-from utils.idempotency_store import make_upload_key, mark_uploaded, was_uploaded
+from utils.idempotency_store import (
+    make_upload_key,
+    mark_uploaded,
+    serialize_same_upload_key,
+    was_uploaded,
+)
 from utils.logging_utils import get_logger, with_context
 from settings import news_settings, PathSettings
 
@@ -51,7 +56,7 @@ async def upload_youtube_shorts(
     overlay_video_output: str,
     article: dict,
     hashtag: Optional[str] = None
-) -> None:
+) -> Optional[str]:
     """
     Upload the generated video to YouTube Shorts asynchronously.
 
@@ -61,6 +66,9 @@ async def upload_youtube_shorts(
         overlay_video_output: Path to the final video
         article: The news article data used for tag generation
         hashtag: Optional hashtag to include in the video metadata
+
+    Returns:
+        YouTube ``video_id`` on success, or ``None`` if skipped (already uploaded).
 
     Raises:
         Exception: If upload fails
@@ -97,42 +105,47 @@ async def upload_youtube_shorts(
             country=str(getattr(news_settings, "country", "")),
             language=str(getattr(news_settings, "language", "")),
         )
-        if await was_uploaded(store_path=store_path, key=key):
-            with_context(logger, store_path=store_path).warning("⏭️ Skipping upload (already uploaded)")
-            return None
+        async with serialize_same_upload_key(key):
+            if await was_uploaded(store_path=store_path, key=key):
+                with_context(logger, store_path=store_path).warning(
+                    "⏭️ Skipping upload (already uploaded)"
+                )
+                return None
 
-        with_context(logger, video_path=overlay_video_output).info(f"🚀 Uploading '{category}' video to YouTube Shorts...")
-
-        # Run the upload operation in the executor (network-bound but potentially slow)
-        video_id = await _run_in_upload_executor(
-            upload_video,
-            yt,
-            overlay_video_output,
-            title,
-            description,
-            combined_tags[:YouTubeSettings.MAX_TAGS],
-            youtube_category,
-            privacy
-        )
-
-        # Also run the playlist addition in the executor
-        if video_id:
-            await _run_in_upload_executor(add_to_playlist, yt, video_id, category)
-            await mark_uploaded(
-                store_path=store_path,
-                key=key,
-                video_id=video_id,
-                article=article,
-                country=str(getattr(news_settings, "country", "")),
-                language=str(getattr(news_settings, "language", "")),
-                category=category,
-                hashtag=hashtag,
-            )
-            with_context(logger, video_id=video_id, store_path=store_path).info(
-                f"✅ Successfully uploaded video for {category} and added to playlist"
+            with_context(logger, video_path=overlay_video_output).info(
+                f"🚀 Uploading '{category}' video to YouTube Shorts..."
             )
 
-        return video_id
+            # Run the upload operation in the executor (network-bound but potentially slow)
+            video_id = await _run_in_upload_executor(
+                upload_video,
+                yt,
+                overlay_video_output,
+                title,
+                description,
+                combined_tags[:YouTubeSettings.MAX_TAGS],
+                youtube_category,
+                privacy,
+            )
+
+            # Also run the playlist addition in the executor
+            if video_id:
+                await _run_in_upload_executor(add_to_playlist, yt, video_id, category)
+                await mark_uploaded(
+                    store_path=store_path,
+                    key=key,
+                    video_id=video_id,
+                    article=article,
+                    country=str(getattr(news_settings, "country", "")),
+                    language=str(getattr(news_settings, "language", "")),
+                    category=category,
+                    hashtag=hashtag,
+                )
+                with_context(logger, video_id=video_id, store_path=store_path).info(
+                    f"✅ Successfully uploaded video for {category} and added to playlist"
+                )
+
+            return video_id
     except Exception as e:
         logger.exception(f"❌ Error uploading YouTube Short for {category}")
         raise
